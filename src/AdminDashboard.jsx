@@ -1,6 +1,147 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+
+const vehicleMakes = [
+  "Mercedes-Benz",
+  "Lexus",
+  "Range Rover",
+  "BMW",
+  "Porsche",
+  "Cadillac",
+  "Audi",
+  "Bentley",
+  "Rolls-Royce",
+  "Toyota",
+  "Land Rover",
+  "McLaren",
+  "Lamborghini",
+  "Ferrari",
+];
+
+const modelsByMake = {
+  "Mercedes-Benz": [
+    "G-Class G 550",
+    "G-Class AMG G 63",
+    "S 580 4MATIC",
+    "GLS 580",
+    "GLE 350",
+    "GLE 53 AMG",
+    "Maybach GLS 600",
+  ],
+  Lexus: ["LX 600 Premium", "LX 600 F Sport", "GX 550", "RX 500h", "LS 500"],
+  "Range Rover": [
+    "Range Rover Sport HSE",
+    "Range Rover Autobiography",
+    "Range Rover Vogue",
+    "Range Rover Velar",
+    "Range Rover Evoque",
+  ],
+  BMW: [
+    "X7 xDrive40i",
+    "X7 M60i",
+    "X5 xDrive40i",
+    "740i",
+    "760i",
+    "M850 xDrive",
+  ],
+  Porsche: ["Cayenne Platinum", "Cayenne S", "Panamera", "Macan GTS"],
+  Cadillac: ["Escalade Premium Luxury", "Escalade Sport", "Escalade ESV"],
+  Audi: ["Q8", "Q7", "A8L", "RS Q8"],
+  Bentley: ["Bentayga", "Continental GT", "Flying Spur"],
+  "Rolls-Royce": ["Cullinan", "Ghost", "Phantom", "Wraith"],
+  Toyota: ["Land Cruiser VX", "Land Cruiser GR Sport", "Sequoia Capstone"],
+  "Land Rover": ["Defender 110", "Defender 130", "Discovery"],
+  McLaren: ["720S", "750S", "Artura", "GT"],
+  Lamborghini: ["Urus", "Huracan", "Aventador", "Revuelto"],
+  Ferrari: ["Roma", "Portofino", "F8 Tributo", "SF90 Stradale"],
+};
+
+const years = Array.from({ length: 17 }, (_, index) => String(2026 - index));
+
+const bodyTypes = [
+  "SUV",
+  "Sedan",
+  "Coupe",
+  "Truck",
+  "Convertible",
+  "Electric Luxury",
+  "Performance SUV",
+  "Sports Car",
+  "Supercar",
+];
+
+const colors = [
+  "Black",
+  "White",
+  "Silver",
+  "Gray",
+  "Blue",
+  "Red",
+  "Green",
+  "Brown",
+  "Beige",
+  "Tan",
+  "Gold",
+  "Pearl White",
+  "Obsidian Black",
+  "Santorini Black",
+  "Atomic Silver",
+  "Crystal White",
+];
+
+const interiors = [
+  "Black Leather",
+  "Brown Leather",
+  "Tan Leather",
+  "Beige Leather",
+  "Red Leather",
+  "White Leather",
+  "Ebony Leather",
+  "Coffee Leather",
+  "Nappa Leather",
+];
+
+const transmissions = ["Automatic", "Manual", "Single-Speed"];
+
+const engines = [
+  "2.0L Turbo",
+  "3.0L Turbo I6",
+  "3.0L Mild Hybrid",
+  "3.4L Twin-Turbo V6",
+  "4.0L V8",
+  "4.0L V8 Biturbo",
+  "5.7L V8",
+  "6.2L V8",
+  "Electric",
+  "Hybrid",
+];
+
+const destinations = [
+  "Nigeria",
+  "Ghana",
+  "Kenya",
+  "South Africa",
+  "Cameroon",
+  "Benin",
+  "Togo",
+  "Ivory Coast",
+  "Senegal",
+];
+
+const statuses = ["Available", "Available Soon", "Reserved", "Sold"];
+
+const badges = [
+  "New Arrival",
+  "High Demand",
+  "Export Favorite",
+  "Executive SUV",
+  "Luxury Pick",
+  "Performance",
+  "Family Luxury",
+  "Reserved",
+  "Sold",
+];
 
 const emptyVehicleForm = {
   year: "",
@@ -9,15 +150,15 @@ const emptyVehicleForm = {
   body: "",
   price: "",
   mileage: "",
-  location: "",
-  destination: "",
+  destination: "Nigeria",
   exterior: "",
   interior: "",
   engine: "",
-  transmission: "",
+  transmission: "Automatic",
   image: "",
-  badge: "",
+  badge: "New Arrival",
   status: "Available",
+  featured: false,
   features: "",
 };
 
@@ -34,10 +175,40 @@ async function readResponse(response) {
   }
 }
 
+function getApiBaseUrl() {
+  return API_URL.replace("/api", "");
+}
+
+function resolveImageUrl(imageUrl) {
+  if (!imageUrl) {
+    return "";
+  }
+
+  if (imageUrl.startsWith("http")) {
+    return imageUrl;
+  }
+
+  if (imageUrl.startsWith("/uploads")) {
+    return `${getApiBaseUrl()}${imageUrl}`;
+  }
+
+  return imageUrl;
+}
+
+function getImageList(imageText) {
+  return imageText
+    ? imageText
+        .split(",")
+        .map((image) => image.trim())
+        .filter(Boolean)
+    : [];
+}
+
 function AdminDashboard() {
   const [token, setToken] = useState(
     () => localStorage.getItem("owoteeAdminToken") || "",
   );
+
   const [loginForm, setLoginForm] = useState({
     username: "",
     password: "",
@@ -52,6 +223,11 @@ function AdminDashboard() {
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingImages, setUploadingImages] = useState(false);
+
+  const modelOptions = useMemo(() => {
+    return modelsByMake[vehicleForm.make] || [];
+  }, [vehicleForm.make]);
 
   useEffect(() => {
     if (token) {
@@ -140,21 +316,29 @@ function AdminDashboard() {
       }
     } catch (error) {
       console.error(error);
-      setStatus(
-        "Failed to load admin data. Make sure the backend is running on port 5000.",
-      );
+      setStatus("Failed to load admin data. Make sure the backend is running.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleVehicleFormChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
 
-    setVehicleForm((previousForm) => ({
-      ...previousForm,
-      [name]: value,
-    }));
+    setVehicleForm((previousForm) => {
+      if (name === "make") {
+        return {
+          ...previousForm,
+          make: value,
+          model: "",
+        };
+      }
+
+      return {
+        ...previousForm,
+        [name]: type === "checkbox" ? checked : value,
+      };
+    });
   };
 
   const resetVehicleForm = () => {
@@ -171,18 +355,14 @@ function AdminDashboard() {
       "body",
       "price",
       "mileage",
-      "location",
       "destination",
+      "exterior",
     ];
 
     for (const field of requiredFields) {
       if (!String(vehicleForm[field]).trim()) {
         return `Please fill in ${field}.`;
       }
-    }
-
-    if (Number.isNaN(Number(vehicleForm.year))) {
-      return "Year must be a number.";
     }
 
     if (Number.isNaN(Number(vehicleForm.price))) {
@@ -194,6 +374,77 @@ function AdminDashboard() {
     }
 
     return "";
+  };
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+
+    if (files.length === 0) {
+      return;
+    }
+
+    const formData = new FormData();
+
+    files.forEach((file) => {
+      formData.append("images", file);
+    });
+
+    try {
+      setUploadingImages(true);
+      setStatus("Uploading images...");
+
+      const response = await fetch(`${API_URL}/admin/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await readResponse(response);
+
+      if (response.status === 401) {
+        handleLogout();
+        throw new Error("Session expired. Please log in again.");
+      }
+
+      if (!response.ok) {
+        throw new Error(data.message || "Image upload failed.");
+      }
+
+      const uploadedImages = data.imageUrls || [];
+
+      setVehicleForm((previousForm) => {
+        const existingImages = getImageList(previousForm.image);
+        const allImages = [...existingImages, ...uploadedImages];
+
+        return {
+          ...previousForm,
+          image: allImages.join(", "),
+        };
+      });
+
+      setStatus("Images uploaded successfully.");
+    } catch (error) {
+      console.error(error);
+      setStatus(error.message);
+    } finally {
+      setUploadingImages(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleRemoveImage = (imageToRemove) => {
+    setVehicleForm((previousForm) => {
+      const remainingImages = getImageList(previousForm.image).filter(
+        (image) => image !== imageToRemove,
+      );
+
+      return {
+        ...previousForm,
+        image: remainingImages.join(", "),
+      };
+    });
   };
 
   const handleVehicleSubmit = async (e) => {
@@ -248,9 +499,9 @@ function AdminDashboard() {
             ? "Vehicle updated successfully."
             : "Vehicle added successfully."),
       );
+
       setVehicleForm(emptyVehicleForm);
       setEditingVehicleId(null);
-
       await loadAdminData();
     } catch (error) {
       console.error(error);
@@ -271,15 +522,15 @@ function AdminDashboard() {
       body: vehicle.body || "",
       price: vehicle.price || "",
       mileage: vehicle.mileage || "",
-      location: vehicle.location || "",
-      destination: vehicle.destination || "",
+      destination: vehicle.destination || "Nigeria",
       exterior: vehicle.exterior || "",
       interior: vehicle.interior || "",
       engine: vehicle.engine || "",
-      transmission: vehicle.transmission || "",
+      transmission: vehicle.transmission || "Automatic",
       image: vehicle.image || "",
-      badge: vehicle.badge || "",
+      badge: vehicle.badge || "New Arrival",
       status: vehicle.status || "Available",
+      featured: Boolean(vehicle.featured),
       features: Array.isArray(vehicle.features)
         ? vehicle.features.join(", ")
         : vehicle.features || "",
@@ -398,8 +649,8 @@ function AdminDashboard() {
             </h1>
 
             <p className="mt-2 text-gray-400">
-              Manage vehicle inventory, customer interest messages, and custom
-              vehicle requests.
+              Manage inventory, uploaded images, customer messages, and vehicle
+              requests.
             </p>
           </div>
 
@@ -463,9 +714,13 @@ function AdminDashboard() {
                 <InventoryAdmin
                   vehicles={vehicles}
                   vehicleForm={vehicleForm}
+                  modelOptions={modelOptions}
                   editingVehicleId={editingVehicleId}
                   saving={saving}
+                  uploadingImages={uploadingImages}
                   onChange={handleVehicleFormChange}
+                  onImageUpload={handleImageUpload}
+                  onRemoveImage={handleRemoveImage}
                   onSubmit={handleVehicleSubmit}
                   onReset={resetVehicleForm}
                   onEdit={handleEditVehicle}
@@ -504,12 +759,39 @@ function TabButton({ active, onClick, children }) {
   );
 }
 
+function ComboField({ name, value, onChange, options, placeholder }) {
+  const listId = `${name}-options`;
+
+  return (
+    <div>
+      <input
+        className="input"
+        name={name}
+        value={value}
+        onChange={onChange}
+        list={listId}
+        placeholder={placeholder}
+      />
+
+      <datalist id={listId}>
+        {options.map((option) => (
+          <option key={option} value={option} />
+        ))}
+      </datalist>
+    </div>
+  );
+}
+
 function InventoryAdmin({
   vehicles,
   vehicleForm,
+  modelOptions,
   editingVehicleId,
   saving,
+  uploadingImages,
   onChange,
+  onImageUpload,
+  onRemoveImage,
   onSubmit,
   onReset,
   onEdit,
@@ -526,39 +808,47 @@ function InventoryAdmin({
         </h2>
 
         <p className="mt-2 text-gray-400">
-          Fill the required fields and click the button. Price and mileage
-          should be numbers only.
+          Use dropdown suggestions or type your own values. Upload one or more
+          images from your device.
         </p>
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <input
-            className="input"
+          <ComboField
             name="year"
-            placeholder="Year, e.g. 2023"
             value={vehicleForm.year}
             onChange={onChange}
+            options={years}
+            placeholder="Select or type Year"
           />
-          <input
-            className="input"
+
+          <ComboField
             name="make"
-            placeholder="Make, e.g. Mercedes-Benz"
             value={vehicleForm.make}
             onChange={onChange}
+            options={vehicleMakes}
+            placeholder="Select or type Make"
           />
-          <input
-            className="input"
+
+          <ComboField
             name="model"
-            placeholder="Model, e.g. GLS 580"
             value={vehicleForm.model}
             onChange={onChange}
+            options={modelOptions}
+            placeholder={
+              vehicleForm.make
+                ? "Select or type Model"
+                : "Select make first or type model"
+            }
           />
-          <input
-            className="input"
+
+          <ComboField
             name="body"
-            placeholder="Body Type, e.g. SUV"
             value={vehicleForm.body}
             onChange={onChange}
+            options={bodyTypes}
+            placeholder="Select or type Body Type"
           />
+
           <input
             className="input"
             name="price"
@@ -566,6 +856,7 @@ function InventoryAdmin({
             value={vehicleForm.price}
             onChange={onChange}
           />
+
           <input
             className="input"
             name="mileage"
@@ -573,72 +864,112 @@ function InventoryAdmin({
             value={vehicleForm.mileage}
             onChange={onChange}
           />
-          <input
-            className="input"
-            name="location"
-            placeholder="U.S. Location, e.g. Dallas, Texas"
-            value={vehicleForm.location}
-            onChange={onChange}
-          />
-          <input
-            className="input"
+
+          <ComboField
             name="destination"
-            placeholder="Destination, e.g. Nigeria"
             value={vehicleForm.destination}
             onChange={onChange}
+            options={destinations}
+            placeholder="Select or type Destination"
           />
-          <input
-            className="input"
+
+          <ComboField
             name="exterior"
-            placeholder="Exterior Color"
             value={vehicleForm.exterior}
             onChange={onChange}
+            options={colors}
+            placeholder="Select or type Exterior Color"
           />
-          <input
-            className="input"
+
+          <ComboField
             name="interior"
-            placeholder="Interior Color"
             value={vehicleForm.interior}
             onChange={onChange}
+            options={interiors}
+            placeholder="Select or type Interior Color"
           />
-          <input
-            className="input"
+
+          <ComboField
             name="engine"
-            placeholder="Engine"
             value={vehicleForm.engine}
             onChange={onChange}
+            options={engines}
+            placeholder="Select or type Engine"
           />
-          <input
-            className="input"
+
+          <ComboField
             name="transmission"
-            placeholder="Transmission"
             value={vehicleForm.transmission}
             onChange={onChange}
+            options={transmissions}
+            placeholder="Select or type Transmission"
           />
-          <input
-            className="input md:col-span-2"
-            name="image"
-            placeholder="Image URL"
-            value={vehicleForm.image}
-            onChange={onChange}
-          />
-          <input
-            className="input md:col-span-2"
-            name="badge"
-            placeholder="Badge, e.g. New Arrival"
-            value={vehicleForm.badge}
-            onChange={onChange}
-          />
-          <select
-            className="input md:col-span-2"
+
+          <ComboField
             name="status"
             value={vehicleForm.status}
             onChange={onChange}
-          >
-            <option value="Available">Available</option>
-            <option value="Reserved">Reserved</option>
-            <option value="Sold">Sold</option>
-          </select>
+            options={statuses}
+            placeholder="Select or type Status"
+          />
+
+          <ComboField
+            name="badge"
+            value={vehicleForm.badge}
+            onChange={onChange}
+            options={badges}
+            placeholder="Select or type Badge"
+          />
+
+          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black p-4 font-bold text-gray-200">
+            <input
+              type="checkbox"
+              name="featured"
+              checked={vehicleForm.featured}
+              onChange={onChange}
+              className="h-5 w-5 accent-yellow-400"
+            />
+            Feature this vehicle on homepage
+          </label>
+
+          <div className="md:col-span-2">
+            <label className="mb-2 block text-sm font-bold text-gray-300">
+              Upload Vehicle Images
+            </label>
+
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={onImageUpload}
+              className="input"
+            />
+
+            <p className="mt-2 text-sm text-gray-500">
+              Upload multiple images. The first image will be the main display
+              image.
+            </p>
+
+            {uploadingImages && (
+              <p className="mt-2 text-sm font-bold text-yellow-400">
+                Uploading images...
+              </p>
+            )}
+          </div>
+
+          <textarea
+            className="input min-h-28 md:col-span-2"
+            name="image"
+            placeholder="Image paths or URLs will appear here. You can also paste URLs separated by commas."
+            value={vehicleForm.image}
+            onChange={onChange}
+          />
+
+          <ImagePreviewManager
+            imageText={vehicleForm.image}
+            onRemoveImage={onRemoveImage}
+          />
+
           <textarea
             className="input min-h-28 md:col-span-2"
             name="features"
@@ -690,6 +1021,12 @@ function InventoryAdmin({
                     <span className="rounded-full border border-white/20 px-3 py-1 text-xs font-bold text-gray-300">
                       {vehicle.status || "Available"}
                     </span>
+
+                    {vehicle.featured && (
+                      <span className="rounded-full bg-yellow-400 px-3 py-1 text-xs font-bold text-black">
+                        Featured
+                      </span>
+                    )}
                   </div>
 
                   <h3 className="mt-1 text-xl font-black">
@@ -699,7 +1036,7 @@ function InventoryAdmin({
                   <p className="mt-1 text-gray-400">
                     ${Number(vehicle.price).toLocaleString()} ·{" "}
                     {Number(vehicle.mileage).toLocaleString()} mi ·{" "}
-                    {vehicle.location} · {vehicle.destination}
+                    {vehicle.destination} · {vehicle.exterior}
                   </p>
                 </div>
 
@@ -730,6 +1067,55 @@ function InventoryAdmin({
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ImagePreviewManager({ imageText, onRemoveImage }) {
+  const images = getImageList(imageText);
+
+  if (images.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="md:col-span-2">
+      <p className="mb-3 text-sm font-bold text-gray-300">
+        Uploaded / Added Images
+      </p>
+
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {images.map((image, index) => (
+          <div
+            key={`${image}-${index}`}
+            className="overflow-hidden rounded-2xl border border-white/10 bg-black"
+          >
+            <img
+              src={resolveImageUrl(image)}
+              alt={`Vehicle preview ${index + 1}`}
+              className="h-36 w-full object-cover"
+            />
+
+            <div className="p-3">
+              <p className="truncate text-xs text-gray-500">{image}</p>
+
+              {index === 0 && (
+                <p className="mt-1 text-xs font-bold text-yellow-400">
+                  Main display image
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={() => onRemoveImage(image)}
+                className="mt-3 w-full rounded-full bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-400"
+              >
+                Remove Image
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

@@ -1,9 +1,38 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  BrowserRouter,
+  Link,
+  NavLink,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router-dom";
+import {
+  Car,
+  ChevronLeft,
+  ChevronRight,
+  Crown,
+  FileText,
+  Gauge,
+  Globe2,
+  Home,
+  List,
+  Mail,
+  Menu,
+  MessageCircle,
+  Phone,
+  Search,
+  Send,
+  Settings,
+  ShieldCheck,
+  Truck,
+  X,
+} from "lucide-react";
 import AdminDashboard from "./AdminDashboard.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-const vehicles = [
+const fallbackVehicles = [
   {
     id: 1,
     year: 2023,
@@ -12,16 +41,16 @@ const vehicles = [
     body: "SUV",
     price: 139500,
     mileage: 12400,
-    location: "Dallas, Texas",
     destination: "Nigeria",
     exterior: "Obsidian Black",
     interior: "Black Leather",
     engine: "4.0L V8",
     transmission: "Automatic",
     image:
-      "https://images.unsplash.com/photo-1617814076668-3b9304f4a3a9?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1617814076668-3b9304f4a3a9?auto=format&fit=crop&w=1200&q=80, https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1200&q=80",
     badge: "High Demand",
     status: "Available",
+    featured: true,
     features: ["AMG Styling", "Leather Interior", "Sunroof", "Premium Audio"],
   },
   {
@@ -32,16 +61,16 @@ const vehicles = [
     body: "SUV",
     price: 104950,
     mileage: 16105,
-    location: "Houston, Texas",
     destination: "Nigeria",
     exterior: "Atomic Silver",
     interior: "Tan Leather",
     engine: "3.4L Twin-Turbo V6",
     transmission: "Automatic",
     image:
-      "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?auto=format&fit=crop&w=1200&q=80, https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&w=1200&q=80",
     badge: "Export Favorite",
     status: "Available",
+    featured: true,
     features: [
       "4WD",
       "Mark Levinson Audio",
@@ -57,42 +86,22 @@ const vehicles = [
     body: "SUV",
     price: 96500,
     mileage: 9440,
-    location: "Atlanta, Georgia",
     destination: "Nigeria",
     exterior: "Santorini Black",
     interior: "Ebony Leather",
     engine: "3.0L Mild Hybrid",
     transmission: "Automatic",
     image:
-      "https://images.unsplash.com/photo-1609521263047-f8f205293f24?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1609521263047-f8f205293f24?auto=format&fit=crop&w=1200&q=80, https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&w=1200&q=80",
     badge: "New Arrival",
-    status: "Available",
+    status: "Available Soon",
+    featured: false,
     features: [
       "Meridian Sound",
       "Air Suspension",
       "Digital Cockpit",
       "Cooled Seats",
     ],
-  },
-  {
-    id: 4,
-    year: 2022,
-    make: "BMW",
-    model: "X7 xDrive40i",
-    body: "SUV",
-    price: 68950,
-    mileage: 28620,
-    location: "Chicago, Illinois",
-    destination: "Nigeria",
-    exterior: "Mineral White",
-    interior: "Coffee Leather",
-    engine: "3.0L Turbo I6",
-    transmission: "Automatic",
-    image:
-      "https://images.unsplash.com/photo-1556189250-72ba954cfc2b?auto=format&fit=crop&w=1200&q=80",
-    badge: "Family Luxury",
-    status: "Available",
-    features: ["Panoramic Roof", "3rd Row", "Heated Seats", "Premium Package"],
   },
 ];
 
@@ -101,12 +110,56 @@ const formatPrice = (price) => {
     style: "currency",
     currency: "USD",
     maximumFractionDigits: 0,
-  }).format(price);
+  }).format(price || 0);
 };
 
 const formatMileage = (mileage) => {
-  return new Intl.NumberFormat("en-US").format(mileage);
+  return new Intl.NumberFormat("en-US").format(mileage || 0);
 };
+
+const sanitizePhone = (value) => {
+  return value.replace(/[^\d+\s()-]/g, "");
+};
+
+function getApiBaseUrl() {
+  return API_URL.replace("/api", "");
+}
+
+function resolveImageUrl(imageUrl) {
+  if (!imageUrl) {
+    return "";
+  }
+
+  if (imageUrl.startsWith("http")) {
+    return imageUrl;
+  }
+
+  if (imageUrl.startsWith("/uploads")) {
+    return `${getApiBaseUrl()}${imageUrl}`;
+  }
+
+  return imageUrl;
+}
+
+function getVehicleImages(vehicle) {
+  if (Array.isArray(vehicle.images) && vehicle.images.length > 0) {
+    return vehicle.images.map(resolveImageUrl);
+  }
+
+  const imageText = vehicle.image || "";
+
+  const images = imageText
+    .split(",")
+    .map((image) => image.trim())
+    .filter(Boolean)
+    .map(resolveImageUrl);
+
+  return images.length > 0
+    ? images
+    : [
+        "https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1200&q=80",
+      ];
+}
 
 function getStatusClass(status) {
   if (status === "Sold") {
@@ -117,20 +170,36 @@ function getStatusClass(status) {
     return "bg-orange-400 text-black";
   }
 
+  if (status === "Available Soon") {
+    return "bg-blue-400 text-black";
+  }
+
   return "bg-green-500 text-black";
 }
 
-function App() {
-  const isAdminPage = window.location.pathname === "/admin";
+function getVehicleWhatsAppLink(vehicle) {
+  const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
+  const message = encodeURIComponent(
+    `Hello Owotee Luxury Motors, I am interested in the ${vehicleName}.`,
+  );
 
-  if (isAdminPage) {
-    return <AdminDashboard />;
-  }
-
-  return <MainWebsite />;
+  return `https://wa.me/14695550198?text=${message}`;
 }
 
-function MainWebsite() {
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/*" element={<Website />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
+function Website() {
+  const navigate = useNavigate();
+
   const [search, setSearch] = useState("");
   const [make, setMake] = useState("All");
   const [body, setBody] = useState("All");
@@ -140,6 +209,8 @@ function MainWebsite() {
   const [interestVehicle, setInterestVehicle] = useState("");
   const [vehiclesFromApi, setVehiclesFromApi] = useState([]);
   const [loadingVehicles, setLoadingVehicles] = useState(true);
+  const [interestSubmitting, setInterestSubmitting] = useState(false);
+  const [requestSubmitting, setRequestSubmitting] = useState(false);
 
   const [interestForm, setInterestForm] = useState({
     fullName: "",
@@ -183,7 +254,8 @@ function MainWebsite() {
     fetchVehicles();
   }, []);
 
-  const vehicleList = vehiclesFromApi.length > 0 ? vehiclesFromApi : vehicles;
+  const vehicleList =
+    vehiclesFromApi.length > 0 ? vehiclesFromApi : fallbackVehicles;
 
   const makes = ["All", ...new Set(vehicleList.map((vehicle) => vehicle.make))];
   const bodyTypes = [
@@ -192,13 +264,15 @@ function MainWebsite() {
   ];
   const destinations = [
     "All",
-    ...new Set(vehicleList.map((vehicle) => vehicle.destination)),
+    ...new Set(
+      vehicleList.map((vehicle) => vehicle.destination).filter(Boolean),
+    ),
   ];
 
   const filteredVehicles = useMemo(() => {
     return vehicleList.filter((vehicle) => {
       const searchText =
-        `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.body} ${vehicle.location} ${vehicle.destination}`.toLowerCase();
+        `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.body} ${vehicle.destination} ${vehicle.exterior}`.toLowerCase();
 
       const matchesSearch = searchText.includes(search.toLowerCase());
       const matchesMake = make === "All" || vehicle.make === make;
@@ -218,22 +292,27 @@ function MainWebsite() {
     });
   }, [search, make, body, destination, maxPrice, vehicleList]);
 
-  const openInterestForm = (vehicle) => {
+  const setVehicleInterest = (vehicle) => {
     const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
 
     setInterestVehicle(vehicleName);
 
-    setInterestForm((prev) => ({
-      ...prev,
+    setInterestForm((previousForm) => ({
+      ...previousForm,
       vehicleInterestedIn: vehicleName,
     }));
+  };
 
-    document.getElementById("message")?.scrollIntoView({ behavior: "smooth" });
+  const handleVehicleInterest = (vehicle) => {
+    setVehicleInterest(vehicle);
+    navigate("/contact");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleInterestSubmit = async (e) => {
     e.preventDefault();
     setFormStatus("Sending interest message...");
+    setInterestSubmitting(true);
 
     try {
       const response = await fetch(`${API_URL}/interest`, {
@@ -268,12 +347,15 @@ function MainWebsite() {
       setInterestVehicle("");
     } catch (error) {
       setFormStatus(error.message);
+    } finally {
+      setInterestSubmitting(false);
     }
   };
 
   const handleVehicleRequestSubmit = async (e) => {
     e.preventDefault();
     setFormStatus("Sending vehicle request...");
+    setRequestSubmitting(true);
 
     try {
       const response = await fetch(`${API_URL}/vehicle-request`, {
@@ -305,6 +387,8 @@ function MainWebsite() {
       });
     } catch (error) {
       setFormStatus(error.message);
+    } finally {
+      setRequestSubmitting(false);
     }
   };
 
@@ -316,46 +400,253 @@ function MainWebsite() {
     <main className="min-h-screen bg-black text-white">
       <Navbar />
 
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <HomePage
+              vehicles={vehicleList}
+              onView={setSelectedVehicle}
+              onInterest={handleVehicleInterest}
+            />
+          }
+        />
+
+        <Route
+          path="/inventory"
+          element={
+            <InventoryPage
+              search={search}
+              setSearch={setSearch}
+              make={make}
+              setMake={setMake}
+              body={body}
+              setBody={setBody}
+              destination={destination}
+              setDestination={setDestination}
+              maxPrice={maxPrice}
+              setMaxPrice={setMaxPrice}
+              makes={makes}
+              bodyTypes={bodyTypes}
+              destinations={destinations}
+              filteredVehicles={filteredVehicles}
+              loadingVehicles={loadingVehicles}
+              onView={setSelectedVehicle}
+              onInterest={handleVehicleInterest}
+            />
+          }
+        />
+
+        <Route
+          path="/request"
+          element={
+            <RequestVehiclePage
+              requestForm={requestForm}
+              setRequestForm={setRequestForm}
+              formStatus={formStatus}
+              submitting={requestSubmitting}
+              onSubmit={handleVehicleRequestSubmit}
+            />
+          }
+        />
+
+        <Route
+          path="/contact"
+          element={
+            <ContactPage
+              interestForm={interestForm}
+              setInterestForm={setInterestForm}
+              interestVehicle={interestVehicle}
+              setInterestVehicle={setInterestVehicle}
+              formStatus={formStatus}
+              whatsappMessage={whatsappMessage}
+              submitting={interestSubmitting}
+              onSubmit={handleInterestSubmit}
+            />
+          }
+        />
+
+        <Route
+          path="*"
+          element={
+            <HomePage
+              vehicles={vehicleList}
+              onView={setSelectedVehicle}
+              onInterest={handleVehicleInterest}
+            />
+          }
+        />
+      </Routes>
+
+      <Footer />
+
+      {selectedVehicle && (
+        <VehicleModal
+          vehicle={selectedVehicle}
+          onClose={() => setSelectedVehicle(null)}
+          onInterest={() => {
+            setVehicleInterest(selectedVehicle);
+            setSelectedVehicle(null);
+            navigate("/contact");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }}
+        />
+      )}
+    </main>
+  );
+}
+
+function BrandMark() {
+  return (
+    <Link to="/" className="flex items-center gap-3">
+      <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-yellow-400/40 bg-yellow-400 text-black shadow-lg shadow-yellow-400/10">
+        <Crown size={22} />
+      </div>
+
+      <div className="leading-tight">
+        <p className="text-lg font-black tracking-tight">
+          Owotee <span className="text-yellow-400">Luxury</span>
+        </p>
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">
+          Motors
+        </p>
+      </div>
+    </Link>
+  );
+}
+
+function Navbar() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navLinks = [
+    { to: "/", label: "Home", icon: Home },
+    { to: "/inventory", label: "Inventory", icon: List },
+    { to: "/request", label: "Request Vehicle", icon: FileText },
+    { to: "/contact", label: "Contact", icon: MessageCircle },
+  ];
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-black/95 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 md:px-10 lg:px-20">
+        <BrandMark />
+
+        <nav className="hidden items-center gap-6 text-sm font-bold text-gray-300 lg:flex">
+          {navLinks.map((link) => {
+            const Icon = link.icon;
+
+            return (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  `flex items-center gap-2 hover:text-yellow-400 ${
+                    isActive ? "text-yellow-400" : ""
+                  }`
+                }
+              >
+                <Icon size={17} />
+                {link.label}
+              </NavLink>
+            );
+          })}
+        </nav>
+
+        <Link
+          to="/contact"
+          className="hidden rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-black hover:bg-yellow-300 lg:inline-block"
+        >
+          Message Us
+        </Link>
+
+        <button
+          type="button"
+          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          className="rounded-full border border-white/20 p-3 text-white lg:hidden"
+          aria-label="Open mobile menu"
+        >
+          {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+        </button>
+      </div>
+
+      {mobileMenuOpen && (
+        <div className="border-t border-white/10 bg-black px-4 py-4 lg:hidden">
+          <div className="grid gap-3">
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+
+              return (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 rounded-2xl px-4 py-3 font-bold ${
+                      isActive
+                        ? "bg-yellow-400 text-black"
+                        : "bg-white/5 text-gray-200"
+                    }`
+                  }
+                >
+                  <Icon size={18} />
+                  {link.label}
+                </NavLink>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
+
+function HomePage({ vehicles = [], onView, onInterest }) {
+  const featuredVehicles =
+    vehicles.filter((vehicle) => vehicle.featured).length > 0
+      ? vehicles.filter((vehicle) => vehicle.featured).slice(0, 3)
+      : vehicles.slice(0, 3);
+
+  return (
+    <>
       <section className="relative overflow-hidden px-4 py-16 sm:px-6 md:px-10 lg:px-20 lg:py-24">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(234,179,8,0.25),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(22,101,52,0.25),transparent_35%)]"></div>
 
         <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2 lg:gap-14">
           <div>
-            <p className="mb-5 text-sm font-bold uppercase tracking-[0.35em] text-yellow-400">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-sm font-bold uppercase tracking-[0.2em] text-yellow-400">
+              <Crown size={16} />
               Owotee Luxury Motors
-            </p>
+            </div>
 
             <h1 className="max-w-4xl text-4xl font-black leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
               Luxury Vehicles from the U.S. to Africa.
             </h1>
 
             <p className="mt-6 max-w-2xl text-base leading-8 text-gray-300 sm:text-lg">
-              We help clients find premium vehicles in the United States and
-              arrange export support to Nigeria and other African destinations.
-              Browse available vehicles or message us to source a specific
-              model.
+              Browse premium vehicles sourced in the United States and message
+              Owotee Luxury Motors about the vehicle you want shipped to Nigeria
+              or other African destinations.
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
-              <a
-                href="#inventory"
+              <Link
+                to="/inventory"
                 className="rounded-full bg-yellow-400 px-8 py-4 text-center font-bold text-black transition hover:bg-yellow-300"
               >
                 Browse Vehicles
-              </a>
+              </Link>
 
-              <a
-                href="#request"
+              <Link
+                to="/request"
                 className="rounded-full border border-white/20 px-8 py-4 text-center font-bold text-white transition hover:bg-white hover:text-black"
               >
                 Request a Vehicle
-              </a>
+              </Link>
             </div>
 
-            <div className="mt-10 grid max-w-xl grid-cols-1 gap-4 sm:grid-cols-3">
-              <Stat number="U.S." label="Vehicle Sourcing" />
-              <Stat number="Africa" label="Shipping Focus" />
-              <Stat number="NG" label="Nigeria Priority" />
+            <div className="mt-10 grid max-w-xl grid-cols-3 gap-2 sm:gap-4">
+              <Stat icon={Car} number="U.S." label="Vehicle Sourcing" />
+              <Stat icon={Globe2} number="Africa" label="Shipping Focus" />
+              <Stat icon={ShieldCheck} number="NG" label="Nigeria Priority" />
             </div>
           </div>
 
@@ -367,7 +658,8 @@ function MainWebsite() {
             />
 
             <div className="mt-4 rounded-[1.5rem] bg-black/70 p-5">
-              <p className="text-sm font-bold uppercase tracking-[0.25em] text-yellow-400">
+              <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-yellow-400">
+                <Truck size={17} />
                 Premium Export Support
               </p>
 
@@ -384,464 +676,553 @@ function MainWebsite() {
         </div>
       </section>
 
-      <section
-        id="inventory"
-        className="bg-zinc-950 px-4 py-16 sm:px-6 md:px-10 lg:px-20 lg:py-20"
-      >
+      <section className="bg-zinc-950 px-4 py-16 sm:px-6 md:px-10 lg:px-20">
         <div className="mx-auto max-w-7xl">
-          <div className="mb-10 text-center">
-            <p className="text-sm font-bold uppercase tracking-[0.3em] text-yellow-400">
-              Available Inventory
-            </p>
-
-            <h2 className="mt-3 text-3xl font-black sm:text-4xl md:text-5xl">
-              Search Luxury Vehicles
-            </h2>
-
-            <p className="mx-auto mt-4 max-w-2xl text-gray-400">
-              Browse luxury vehicles available for U.S. purchase and export
-              support to Nigeria and other African destinations.
-            </p>
-          </div>
-
-          <div className="mb-10 rounded-[2rem] border border-white/10 bg-white/5 p-5">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-              <input
-                type="text"
-                placeholder="Search make, model, location..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none placeholder:text-gray-500"
-              />
-
-              <select
-                value={make}
-                onChange={(e) => setMake(e.target.value)}
-                className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none"
-              >
-                {makes.map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
-
-              <select
-                value={body}
-                onChange={(e) => setBody(e.target.value)}
-                className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none"
-              >
-                {bodyTypes.map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
-
-              <select
-                value={destination}
-                onChange={(e) => setDestination(e.target.value)}
-                className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none"
-              >
-                {destinations.map((item) => (
-                  <option key={item}>{item}</option>
-                ))}
-              </select>
-
-              <select
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
-                className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none"
-              >
-                <option value="All">Any Price</option>
-                <option value="75000">Under $75,000</option>
-                <option value="100000">Under $100,000</option>
-                <option value="125000">Under $125,000</option>
-                <option value="150000">Under $150,000</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <p className="font-semibold text-gray-400">
-              {loadingVehicles
-                ? "Loading vehicles..."
-                : `${filteredVehicles.length} vehicles found`}
-            </p>
-
-            <a
-              href="#request"
-              className="rounded-full border border-yellow-400 px-5 py-3 text-center text-sm font-bold text-yellow-400 hover:bg-yellow-400 hover:text-black"
-            >
-              Do not see your vehicle?
-            </a>
-          </div>
+          <SectionHeading
+            eyebrow="Featured Inventory"
+            title="Luxury vehicles ready for serious buyers"
+            text="Preview selected vehicles, view their details, or message us directly about the one you want."
+          />
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {filteredVehicles.map((vehicle) => (
+            {featuredVehicles.map((vehicle) => (
               <VehicleCard
                 key={vehicle.id}
                 vehicle={vehicle}
-                onView={() => setSelectedVehicle(vehicle)}
-                onInterest={() => openInterestForm(vehicle)}
+                onView={() => onView(vehicle)}
+                onInterest={() => onInterest(vehicle)}
               />
             ))}
           </div>
 
-          {filteredVehicles.length === 0 && !loadingVehicles && (
-            <div className="rounded-[2rem] border border-dashed border-white/20 p-12 text-center">
-              <h3 className="text-2xl font-black">No vehicles found.</h3>
-
-              <p className="mt-2 text-gray-400">
-                Try another search or submit a custom vehicle request.
-              </p>
-            </div>
-          )}
+          <div className="mt-10 text-center">
+            <Link
+              to="/inventory"
+              className="inline-flex items-center gap-2 rounded-full bg-yellow-400 px-8 py-4 font-bold text-black hover:bg-yellow-300"
+            >
+              View Full Inventory
+              <ChevronRight size={18} />
+            </Link>
+          </div>
         </div>
       </section>
 
       <HowItWorks />
+    </>
+  );
+}
 
-      <section
-        id="request"
-        className="bg-black px-4 py-16 sm:px-6 md:px-10 lg:px-20 lg:py-20"
-      >
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2">
-          <div>
-            <p className="text-sm font-bold uppercase tracking-[0.3em] text-yellow-400">
-              Request a Vehicle
-            </p>
-
-            <h2 className="mt-3 text-3xl font-black sm:text-4xl md:text-5xl">
-              Looking for a specific luxury vehicle?
-            </h2>
-
-            <p className="mt-5 max-w-xl text-base leading-8 text-gray-300 sm:text-lg">
-              If you do not see the exact vehicle you want, send us the make,
-              model, year range, budget, and destination. Owotee Luxury Motors
-              can help source premium vehicles from the U.S. market.
-            </p>
-          </div>
-
-          <form
-            onSubmit={handleVehicleRequestSubmit}
-            className="rounded-[2rem] border border-white/10 bg-white/5 p-5 sm:p-6"
-          >
-            <div className="grid gap-4 md:grid-cols-2">
-              <input
-                className="input"
-                placeholder="Full Name"
-                value={requestForm.fullName}
-                onChange={(e) =>
-                  setRequestForm({ ...requestForm, fullName: e.target.value })
-                }
-              />
-
-              <input
-                className="input"
-                placeholder="Phone / WhatsApp"
-                value={requestForm.phone}
-                onChange={(e) =>
-                  setRequestForm({ ...requestForm, phone: e.target.value })
-                }
-              />
-
-              <input
-                className="input"
-                placeholder="Email Address"
-                value={requestForm.email}
-                onChange={(e) =>
-                  setRequestForm({ ...requestForm, email: e.target.value })
-                }
-              />
-
-              <input
-                className="input"
-                placeholder="Destination Country"
-                value={requestForm.destinationCountry}
-                onChange={(e) =>
-                  setRequestForm({
-                    ...requestForm,
-                    destinationCountry: e.target.value,
-                  })
-                }
-              />
-
-              <input
-                className="input"
-                placeholder="Preferred Make"
-                value={requestForm.preferredMake}
-                onChange={(e) =>
-                  setRequestForm({
-                    ...requestForm,
-                    preferredMake: e.target.value,
-                  })
-                }
-              />
-
-              <input
-                className="input"
-                placeholder="Preferred Model"
-                value={requestForm.preferredModel}
-                onChange={(e) =>
-                  setRequestForm({
-                    ...requestForm,
-                    preferredModel: e.target.value,
-                  })
-                }
-              />
-
-              <input
-                className="input"
-                placeholder="Year Range"
-                value={requestForm.yearRange}
-                onChange={(e) =>
-                  setRequestForm({ ...requestForm, yearRange: e.target.value })
-                }
-              />
-
-              <input
-                className="input"
-                placeholder="Budget"
-                value={requestForm.budget}
-                onChange={(e) =>
-                  setRequestForm({ ...requestForm, budget: e.target.value })
-                }
-              />
-
-              <textarea
-                className="input min-h-32 md:col-span-2"
-                placeholder="Tell us exactly what you want..."
-                value={requestForm.message}
-                onChange={(e) =>
-                  setRequestForm({ ...requestForm, message: e.target.value })
-                }
-              ></textarea>
-            </div>
-
-            <button
-              type="submit"
-              className="mt-5 w-full rounded-full bg-yellow-400 px-8 py-4 font-bold text-black hover:bg-yellow-300"
-            >
-              Submit Vehicle Request
-            </button>
-
-            {formStatus && (
-              <p className="mt-4 rounded-2xl border border-white/10 bg-black px-4 py-3 text-sm text-gray-300">
-                {formStatus}
-              </p>
-            )}
-          </form>
-        </div>
-      </section>
-
-      <section
-        id="message"
-        className="bg-zinc-950 px-4 py-16 sm:px-6 md:px-10 lg:px-20 lg:py-20"
-      >
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2">
-          <div>
-            <p className="text-sm font-bold uppercase tracking-[0.3em] text-yellow-400">
-              Message Us
-            </p>
-
-            <h2 className="mt-3 text-3xl font-black sm:text-4xl md:text-5xl">
-              Interested in a vehicle?
-            </h2>
-
-            <p className="mt-5 max-w-xl text-base leading-8 text-gray-300 sm:text-lg">
-              Send us your name, contact information, destination country, and
-              the vehicle you are interested in. We will respond with
-              availability and next steps.
-            </p>
-
-            <a
-              href={`https://wa.me/14695550198?text=${whatsappMessage}`}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-8 inline-block rounded-full bg-green-500 px-8 py-4 font-bold text-black hover:bg-green-400"
-            >
-              Message on WhatsApp
-            </a>
-          </div>
-
-          <form
-            onSubmit={handleInterestSubmit}
-            className="rounded-[2rem] border border-white/10 bg-white/5 p-5 sm:p-6"
-          >
-            <div className="grid gap-4">
-              <input
-                className="input"
-                placeholder="Full Name"
-                value={interestForm.fullName}
-                onChange={(e) =>
-                  setInterestForm({ ...interestForm, fullName: e.target.value })
-                }
-              />
-
-              <input
-                className="input"
-                placeholder="Phone / WhatsApp"
-                value={interestForm.phone}
-                onChange={(e) =>
-                  setInterestForm({ ...interestForm, phone: e.target.value })
-                }
-              />
-
-              <input
-                className="input"
-                placeholder="Email Address"
-                value={interestForm.email}
-                onChange={(e) =>
-                  setInterestForm({ ...interestForm, email: e.target.value })
-                }
-              />
-
-              <input
-                className="input"
-                placeholder="Destination Country"
-                value={interestForm.destinationCountry}
-                onChange={(e) =>
-                  setInterestForm({
-                    ...interestForm,
-                    destinationCountry: e.target.value,
-                  })
-                }
-              />
-
-              <input
-                className="input"
-                value={interestForm.vehicleInterestedIn || interestVehicle}
-                onChange={(e) => {
-                  setInterestVehicle(e.target.value);
-                  setInterestForm({
-                    ...interestForm,
-                    vehicleInterestedIn: e.target.value,
-                  });
-                }}
-                placeholder="Vehicle Interested In"
-              />
-
-              <textarea
-                className="input min-h-36"
-                placeholder="Message"
-                value={interestForm.message}
-                onChange={(e) =>
-                  setInterestForm({ ...interestForm, message: e.target.value })
-                }
-              ></textarea>
-            </div>
-
-            <button
-              type="submit"
-              className="mt-5 w-full rounded-full bg-yellow-400 px-8 py-4 font-bold text-black hover:bg-yellow-300"
-            >
-              Send Message
-            </button>
-
-            {formStatus && (
-              <p className="mt-4 rounded-2xl border border-white/10 bg-black px-4 py-3 text-sm text-gray-300">
-                {formStatus}
-              </p>
-            )}
-          </form>
-        </div>
-      </section>
-
-      <Footer />
-
-      {selectedVehicle && (
-        <VehicleModal
-          vehicle={selectedVehicle}
-          onClose={() => setSelectedVehicle(null)}
-          onInterest={() => {
-            openInterestForm(selectedVehicle);
-            setSelectedVehicle(null);
-          }}
+function InventoryPage({
+  search,
+  setSearch,
+  make,
+  setMake,
+  body,
+  setBody,
+  destination,
+  setDestination,
+  maxPrice,
+  setMaxPrice,
+  makes,
+  bodyTypes,
+  destinations,
+  filteredVehicles,
+  loadingVehicles,
+  onView,
+  onInterest,
+}) {
+  return (
+    <section className="bg-zinc-950 px-4 py-16 sm:px-6 md:px-10 lg:px-20 lg:py-20">
+      <div className="mx-auto max-w-7xl">
+        <SectionHeading
+          eyebrow="Available Inventory"
+          title="Search Luxury Vehicles"
+          text="Browse luxury vehicles available for U.S. purchase and export support to Nigeria and other African destinations."
         />
-      )}
-    </main>
-  );
-}
 
-function Navbar() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+        <div className="mb-10 rounded-[2rem] border border-white/10 bg-white/5 p-5">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+            <label className="relative">
+              <Search
+                size={18}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+              />
+              <input
+                type="text"
+                placeholder="Search make, model, color..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full rounded-2xl border border-white/10 bg-black px-11 py-4 text-white outline-none placeholder:text-gray-500"
+              />
+            </label>
 
-  return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-black/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 md:px-10 lg:px-20">
-        <a href="#" className="flex items-center gap-3">
-          <div className="flex h-12 w-24 items-center justify-center overflow-hidden rounded-xl bg-white px-2 sm:h-14 sm:w-32">
-            <img
-              src="/owotee-logo.png"
-              alt="Owotee Luxury Motors Logo"
-              className="h-full w-full object-contain"
-            />
-          </div>
-        </a>
-
-        <nav className="hidden items-center gap-8 text-sm font-bold text-gray-300 md:flex">
-          <a href="#inventory" className="hover:text-yellow-400">
-            Inventory
-          </a>
-          <a href="#request" className="hover:text-yellow-400">
-            Request Vehicle
-          </a>
-          <a href="#message" className="hover:text-yellow-400">
-            Message Us
-          </a>
-        </nav>
-
-        <button
-          type="button"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="rounded-full border border-white/20 px-4 py-2 text-sm font-bold text-white md:hidden"
-        >
-          Menu
-        </button>
-
-        <a
-          href="#message"
-          className="hidden rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-black hover:bg-yellow-300 md:inline-block"
-        >
-          Contact
-        </a>
-      </div>
-
-      {mobileMenuOpen && (
-        <div className="border-t border-white/10 bg-black px-4 py-4 md:hidden">
-          <div className="grid gap-3">
-            <a
-              href="#inventory"
-              onClick={() => setMobileMenuOpen(false)}
-              className="rounded-2xl bg-white/5 px-4 py-3 font-bold text-gray-200"
+            <select
+              value={make}
+              onChange={(e) => setMake(e.target.value)}
+              className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none"
             >
-              Inventory
-            </a>
+              {makes.map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
 
-            <a
-              href="#request"
-              onClick={() => setMobileMenuOpen(false)}
-              className="rounded-2xl bg-white/5 px-4 py-3 font-bold text-gray-200"
+            <select
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none"
             >
-              Request Vehicle
-            </a>
+              {bodyTypes.map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
 
-            <a
-              href="#message"
-              onClick={() => setMobileMenuOpen(false)}
-              className="rounded-2xl bg-yellow-400 px-4 py-3 text-center font-bold text-black"
+            <select
+              value={destination}
+              onChange={(e) => setDestination(e.target.value)}
+              className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none"
             >
-              Message Us
-            </a>
+              {destinations.map((item) => (
+                <option key={item}>{item}</option>
+              ))}
+            </select>
+
+            <select
+              value={maxPrice}
+              onChange={(e) => setMaxPrice(e.target.value)}
+              className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none"
+            >
+              <option value="All">Any Price</option>
+              <option value="75000">Under $75,000</option>
+              <option value="100000">Under $100,000</option>
+              <option value="125000">Under $125,000</option>
+              <option value="150000">Under $150,000</option>
+            </select>
           </div>
         </div>
-      )}
-    </header>
+
+        <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+          <p className="font-semibold text-gray-400">
+            {loadingVehicles
+              ? "Loading vehicles..."
+              : `${filteredVehicles.length} vehicles found`}
+          </p>
+
+          <Link
+            to="/request"
+            className="rounded-full border border-yellow-400 px-5 py-3 text-center text-sm font-bold text-yellow-400 hover:bg-yellow-400 hover:text-black"
+          >
+            Do not see your vehicle?
+          </Link>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {filteredVehicles.map((vehicle) => (
+            <VehicleCard
+              key={vehicle.id}
+              vehicle={vehicle}
+              onView={() => onView(vehicle)}
+              onInterest={() => onInterest(vehicle)}
+            />
+          ))}
+        </div>
+
+        {filteredVehicles.length === 0 && !loadingVehicles && (
+          <div className="rounded-[2rem] border border-dashed border-white/20 p-12 text-center">
+            <h3 className="text-2xl font-black">No vehicles found.</h3>
+
+            <p className="mt-2 text-gray-400">
+              Try another search or submit a custom vehicle request.
+            </p>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
-function Stat({ number, label }) {
+function RequestVehiclePage({
+  requestForm,
+  setRequestForm,
+  formStatus,
+  submitting,
+  onSubmit,
+}) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
-      <p className="text-2xl font-black text-yellow-400">{number}</p>
-      <p className="mt-1 text-sm text-gray-400">{label}</p>
+    <section className="bg-black px-4 py-16 sm:px-6 md:px-10 lg:px-20 lg:py-20">
+      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2">
+        <div>
+          <SectionHeading
+            align="left"
+            eyebrow="Request a Vehicle"
+            title="Looking for a specific luxury vehicle?"
+            text="If you do not see the exact vehicle you want, send us the make, model, year range, budget, and destination. Owotee Luxury Motors can help source premium vehicles from the U.S. market."
+          />
+
+          <div className="mt-8 grid gap-4">
+            <IconText icon={Search} title="Tell us what you want" />
+            <IconText icon={ShieldCheck} title="We confirm vehicle details" />
+            <IconText icon={Truck} title="We support export preparation" />
+          </div>
+        </div>
+
+        <form
+          onSubmit={onSubmit}
+          className="rounded-[2rem] border border-white/10 bg-white/5 p-5 sm:p-6"
+        >
+          <div className="grid gap-4 md:grid-cols-2">
+            <input
+              className="input"
+              placeholder="Full Name"
+              value={requestForm.fullName}
+              onChange={(e) =>
+                setRequestForm({ ...requestForm, fullName: e.target.value })
+              }
+            />
+
+            <input
+              className="input"
+              type="tel"
+              inputMode="tel"
+              placeholder="Phone / WhatsApp"
+              value={requestForm.phone}
+              onChange={(e) =>
+                setRequestForm({
+                  ...requestForm,
+                  phone: sanitizePhone(e.target.value),
+                })
+              }
+            />
+
+            <input
+              className="input"
+              placeholder="Email Address"
+              value={requestForm.email}
+              onChange={(e) =>
+                setRequestForm({ ...requestForm, email: e.target.value })
+              }
+            />
+
+            <input
+              className="input"
+              placeholder="Destination Country"
+              value={requestForm.destinationCountry}
+              onChange={(e) =>
+                setRequestForm({
+                  ...requestForm,
+                  destinationCountry: e.target.value,
+                })
+              }
+            />
+
+            <input
+              className="input"
+              placeholder="Preferred Make"
+              value={requestForm.preferredMake}
+              onChange={(e) =>
+                setRequestForm({
+                  ...requestForm,
+                  preferredMake: e.target.value,
+                })
+              }
+            />
+
+            <input
+              className="input"
+              placeholder="Preferred Model"
+              value={requestForm.preferredModel}
+              onChange={(e) =>
+                setRequestForm({
+                  ...requestForm,
+                  preferredModel: e.target.value,
+                })
+              }
+            />
+
+            <input
+              className="input"
+              placeholder="Year Range"
+              value={requestForm.yearRange}
+              onChange={(e) =>
+                setRequestForm({ ...requestForm, yearRange: e.target.value })
+              }
+            />
+
+            <input
+              className="input"
+              placeholder="Budget"
+              value={requestForm.budget}
+              onChange={(e) =>
+                setRequestForm({ ...requestForm, budget: e.target.value })
+              }
+            />
+
+            <textarea
+              className="input min-h-32 md:col-span-2"
+              placeholder="Tell us exactly what you want..."
+              value={requestForm.message}
+              onChange={(e) =>
+                setRequestForm({ ...requestForm, message: e.target.value })
+              }
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-yellow-400 px-8 py-4 font-bold text-black hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Send size={18} />
+            {submitting ? "Sending..." : "Submit Vehicle Request"}
+          </button>
+
+          {formStatus && <StatusMessage message={formStatus} />}
+        </form>
+      </div>
+    </section>
+  );
+}
+
+function ContactPage({
+  interestForm,
+  setInterestForm,
+  interestVehicle,
+  setInterestVehicle,
+  formStatus,
+  whatsappMessage,
+  submitting,
+  onSubmit,
+}) {
+  return (
+    <section className="bg-zinc-950 px-4 py-16 sm:px-6 md:px-10 lg:px-20 lg:py-20">
+      <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-2">
+        <div>
+          <SectionHeading
+            align="left"
+            eyebrow="Message Us"
+            title="Interested in a vehicle?"
+            text="Send us your name, contact information, destination country, and the vehicle you are interested in. We will respond with availability and next steps."
+          />
+
+          <div className="mt-8 grid gap-4">
+            <IconText icon={Phone} title="WhatsApp: +1 469 555 0198" />
+            <IconText icon={Mail} title="info@owoteeluxurymotors.com" />
+            <IconText icon={Globe2} title="Focus Destination: Nigeria" />
+          </div>
+
+          <a
+            href={`https://wa.me/14695550198?text=${whatsappMessage}`}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-8 inline-flex items-center gap-2 rounded-full bg-green-500 px-8 py-4 font-bold text-black hover:bg-green-400"
+          >
+            <MessageCircle size={20} />
+            Message on WhatsApp
+          </a>
+        </div>
+
+        <form
+          onSubmit={onSubmit}
+          className="rounded-[2rem] border border-white/10 bg-white/5 p-5 sm:p-6"
+        >
+          <div className="grid gap-4">
+            <input
+              className="input"
+              placeholder="Full Name"
+              value={interestForm.fullName}
+              onChange={(e) =>
+                setInterestForm({ ...interestForm, fullName: e.target.value })
+              }
+            />
+
+            <input
+              className="input"
+              type="tel"
+              inputMode="tel"
+              placeholder="Phone / WhatsApp"
+              value={interestForm.phone}
+              onChange={(e) =>
+                setInterestForm({
+                  ...interestForm,
+                  phone: sanitizePhone(e.target.value),
+                })
+              }
+            />
+
+            <input
+              className="input"
+              placeholder="Email Address"
+              value={interestForm.email}
+              onChange={(e) =>
+                setInterestForm({ ...interestForm, email: e.target.value })
+              }
+            />
+
+            <input
+              className="input"
+              placeholder="Destination Country"
+              value={interestForm.destinationCountry}
+              onChange={(e) =>
+                setInterestForm({
+                  ...interestForm,
+                  destinationCountry: e.target.value,
+                })
+              }
+            />
+
+            <input
+              className="input"
+              value={interestForm.vehicleInterestedIn || interestVehicle}
+              onChange={(e) => {
+                setInterestVehicle(e.target.value);
+                setInterestForm({
+                  ...interestForm,
+                  vehicleInterestedIn: e.target.value,
+                });
+              }}
+              placeholder="Vehicle Interested In"
+            />
+
+            <textarea
+              className="input min-h-36"
+              placeholder="Message"
+              value={interestForm.message}
+              onChange={(e) =>
+                setInterestForm({ ...interestForm, message: e.target.value })
+              }
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            disabled={submitting}
+            className="mt-5 flex w-full items-center justify-center gap-2 rounded-full bg-yellow-400 px-8 py-4 font-bold text-black hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Send size={18} />
+            {submitting ? "Sending..." : "Send Message"}
+          </button>
+
+          {formStatus && <StatusMessage message={formStatus} />}
+        </form>
+      </div>
+    </section>
+  );
+}
+
+function SectionHeading({ eyebrow, title, text, align = "center" }) {
+  const alignment = align === "left" ? "text-left" : "text-center mx-auto";
+
+  return (
+    <div className={`mb-10 max-w-3xl ${alignment}`}>
+      <p className="text-sm font-bold uppercase tracking-[0.3em] text-yellow-400">
+        {eyebrow}
+      </p>
+
+      <h2 className="mt-3 text-3xl font-black sm:text-4xl md:text-5xl">
+        {title}
+      </h2>
+
+      {text && <p className="mt-4 text-base leading-8 text-gray-400">{text}</p>}
+    </div>
+  );
+}
+
+function Stat({ icon: Icon, number, label }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-3 sm:p-4">
+      <Icon size={18} className="mb-2 text-yellow-400 sm:h-6 sm:w-6" />
+
+      <p className="text-lg font-black text-yellow-400 sm:text-2xl">{number}</p>
+
+      <p className="mt-1 text-[11px] leading-4 text-gray-400 sm:text-sm">
+        {label}
+      </p>
+    </div>
+  );
+}
+
+function VehicleImageSlider({ vehicle, className }) {
+  const images = getVehicleImages(vehicle);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [touchStart, setTouchStart] = useState(null);
+
+  const goPrevious = () => {
+    setCurrentIndex((current) =>
+      current === 0 ? images.length - 1 : current - 1,
+    );
+  };
+
+  const goNext = () => {
+    setCurrentIndex((current) =>
+      current === images.length - 1 ? 0 : current + 1,
+    );
+  };
+
+  const handleTouchEnd = (e) => {
+    if (touchStart === null) return;
+
+    const touchEnd = e.changedTouches[0].clientX;
+    const difference = touchStart - touchEnd;
+
+    if (difference > 50) {
+      goNext();
+    }
+
+    if (difference < -50) {
+      goPrevious();
+    }
+
+    setTouchStart(null);
+  };
+
+  return (
+    <div
+      className={`relative overflow-hidden ${className}`}
+      onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
+      onTouchEnd={handleTouchEnd}
+    >
+      <img
+        src={images[currentIndex]}
+        alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+        className="h-full w-full object-cover"
+      />
+
+      {images.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={goPrevious}
+            className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur hover:bg-black"
+            aria-label="Previous image"
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <button
+            type="button"
+            onClick={goNext}
+            className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur hover:bg-black"
+            aria-label="Next image"
+          >
+            <ChevronRight size={20} />
+          </button>
+
+          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
+            {images.map((image, index) => (
+              <button
+                key={`${image}-${index}`}
+                type="button"
+                onClick={() => setCurrentIndex(index)}
+                className={`h-2 rounded-full transition ${
+                  index === currentIndex
+                    ? "w-6 bg-yellow-400"
+                    : "w-2 bg-white/60"
+                }`}
+                aria-label={`Go to image ${index + 1}`}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -854,21 +1235,17 @@ function VehicleCard({ vehicle, onView, onInterest }) {
     : [];
 
   return (
-    <article className="overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-xl transition hover:-translate-y-1 hover:border-yellow-400/50">
-      <div className="relative h-60 overflow-hidden">
-        <img
-          src={vehicle.image}
-          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-          className="h-full w-full object-cover transition duration-500 hover:scale-105"
-        />
+    <article className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-black shadow-xl transition hover:-translate-y-1 hover:border-yellow-400/50">
+      <div className="relative">
+        <VehicleImageSlider vehicle={vehicle} className="h-48 sm:h-52" />
 
-        <div className="absolute left-4 top-4 flex flex-wrap gap-2">
-          <span className="rounded-full bg-yellow-400 px-4 py-2 text-xs font-black text-black">
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
+          <span className="rounded-full bg-yellow-400 px-3 py-1.5 text-[11px] font-black text-black">
             {vehicle.badge || "Luxury"}
           </span>
 
           <span
-            className={`rounded-full px-4 py-2 text-xs font-black ${getStatusClass(
+            className={`rounded-full px-3 py-1.5 text-[11px] font-black ${getStatusClass(
               vehicleStatus,
             )}`}
           >
@@ -878,53 +1255,78 @@ function VehicleCard({ vehicle, onView, onInterest }) {
       </div>
 
       <div className="p-5">
-        <p className="text-sm font-bold uppercase tracking-[0.2em] text-gray-500">
+        <p className="text-xs font-bold uppercase tracking-[0.25em] text-gray-500">
           {vehicle.body}
         </p>
 
-        <h3 className="mt-2 text-2xl font-black">
+        <h3 className="mt-2 line-clamp-2 min-h-[3.5rem] text-xl font-black leading-tight">
           {vehicle.year} {vehicle.make} {vehicle.model}
         </h3>
 
-        <p className="mt-2 text-3xl font-black text-yellow-400">
+        <p className="mt-3 text-2xl font-black text-yellow-400">
           {formatPrice(vehicle.price)}
         </p>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 text-sm text-gray-300 sm:grid-cols-2">
-          <Info
+        <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
+          <CompactSpec
+            icon={Gauge}
             label="Mileage"
             value={`${formatMileage(vehicle.mileage)} mi`}
           />
-          <Info label="Location" value={vehicle.location} />
-          <Info label="Destination" value={vehicle.destination} />
-          <Info label="Transmission" value={vehicle.transmission} />
+
+          <CompactSpec
+            icon={Globe2}
+            label="Destination"
+            value={vehicle.destination}
+          />
+
+          <CompactSpec icon={Car} label="Color" value={vehicle.exterior} />
+
+          <CompactSpec
+            icon={Settings}
+            label="Trans."
+            value={vehicle.transmission}
+          />
         </div>
 
-        <div className="mt-5 flex flex-wrap gap-2">
-          {vehicleFeatures.slice(0, 3).map((feature) => (
-            <span
-              key={feature}
-              className="rounded-full border border-white/10 px-3 py-1 text-xs font-semibold text-gray-300"
+        {vehicleFeatures.length > 0 && (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {vehicleFeatures.slice(0, 3).map((feature) => (
+              <span
+                key={feature}
+                className="rounded-full border border-white/10 px-3 py-1 text-[11px] font-semibold text-gray-300"
+              >
+                {feature}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-5 grid gap-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={onView}
+              className="rounded-full border border-white/20 px-5 py-3 text-sm font-bold text-white hover:bg-white hover:text-black"
             >
-              {feature}
-            </span>
-          ))}
-        </div>
+              View Details
+            </button>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={onView}
-            className="rounded-full border border-white/20 px-5 py-3 font-bold text-white hover:bg-white hover:text-black"
-          >
-            View Details
-          </button>
+            <a
+              href={getVehicleWhatsAppLink(vehicle)}
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-full bg-green-500 px-5 py-3 text-center text-sm font-bold text-black hover:bg-green-400"
+            >
+              WhatsApp
+            </a>
+          </div>
 
           <button
             type="button"
             onClick={onInterest}
             disabled={isSold}
-            className="rounded-full bg-yellow-400 px-5 py-3 font-bold text-black hover:bg-yellow-300 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-300"
+            className="rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-black hover:bg-yellow-300 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-300"
           >
             {isSold ? "Sold" : "I’m Interested"}
           </button>
@@ -934,10 +1336,28 @@ function VehicleCard({ vehicle, onView, onInterest }) {
   );
 }
 
-function Info({ label, value }) {
+function CompactSpec({ icon: Icon, label, value }) {
+  return (
+    <div className="rounded-2xl bg-white/[0.04] p-3">
+      <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+        {Icon && <Icon size={13} />}
+        {label}
+      </p>
+
+      <p className="mt-1 truncate text-sm font-bold text-gray-200">
+        {value || "Not listed"}
+      </p>
+    </div>
+  );
+}
+
+function Info({ icon: Icon, label, value }) {
   return (
     <div className="rounded-2xl bg-white/5 p-3">
-      <p className="text-xs uppercase tracking-widest text-gray-500">{label}</p>
+      <p className="flex items-center gap-2 text-xs uppercase tracking-widest text-gray-500">
+        {Icon && <Icon size={14} />}
+        {label}
+      </p>
       <p className="mt-1 font-semibold">{value || "Not listed"}</p>
     </div>
   );
@@ -954,10 +1374,9 @@ function VehicleModal({ vehicle, onClose, onInterest }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur">
       <div className="max-h-[90vh] w-full max-w-5xl overflow-auto rounded-[2rem] border border-white/10 bg-zinc-950">
         <div className="grid lg:grid-cols-2">
-          <img
-            src={vehicle.image}
-            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-            className="h-64 w-full object-cover sm:h-80 lg:h-full lg:min-h-[380px]"
+          <VehicleImageSlider
+            vehicle={vehicle}
+            className="h-64 sm:h-80 lg:h-full lg:min-h-[420px]"
           />
 
           <div className="p-6 md:p-8">
@@ -995,16 +1414,28 @@ function VehicleModal({ vehicle, onClose, onInterest }) {
 
             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
               <Info
+                icon={Gauge}
                 label="Mileage"
                 value={`${formatMileage(vehicle.mileage)} mi`}
               />
-              <Info label="Location" value={vehicle.location} />
-              <Info label="Destination" value={vehicle.destination} />
-              <Info label="Exterior" value={vehicle.exterior} />
-              <Info label="Interior" value={vehicle.interior} />
-              <Info label="Engine" value={vehicle.engine} />
-              <Info label="Transmission" value={vehicle.transmission} />
-              <Info label="Body" value={vehicle.body} />
+              <Info
+                icon={Globe2}
+                label="Destination"
+                value={vehicle.destination}
+              />
+              <Info
+                icon={Car}
+                label="Exterior Color"
+                value={vehicle.exterior}
+              />
+              <Info icon={Car} label="Interior" value={vehicle.interior} />
+              <Info icon={Settings} label="Engine" value={vehicle.engine} />
+              <Info
+                icon={Settings}
+                label="Transmission"
+                value={vehicle.transmission}
+              />
+              <Info icon={Car} label="Body" value={vehicle.body} />
             </div>
 
             <div className="mt-6">
@@ -1028,16 +1459,25 @@ function VehicleModal({ vehicle, onClose, onInterest }) {
               availability, sourcing details, and next steps.
             </p>
 
-            <button
-              type="button"
-              onClick={onInterest}
-              disabled={isSold}
-              className="mt-6 w-full rounded-full bg-yellow-400 px-8 py-4 font-bold text-black hover:bg-yellow-300 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-300"
-            >
-              {isSold
-                ? "This Vehicle Is Sold"
-                : "Message Us About This Vehicle"}
-            </button>
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <a
+                href={getVehicleWhatsAppLink(vehicle)}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full bg-green-500 px-8 py-4 text-center font-bold text-black hover:bg-green-400"
+              >
+                WhatsApp
+              </a>
+
+              <button
+                type="button"
+                onClick={onInterest}
+                disabled={isSold}
+                className="rounded-full bg-yellow-400 px-8 py-4 font-bold text-black hover:bg-yellow-300 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-300"
+              >
+                {isSold ? "This Vehicle Is Sold" : "Message Us"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -1045,25 +1485,50 @@ function VehicleModal({ vehicle, onClose, onInterest }) {
   );
 }
 
+function IconText({ icon: Icon, title }) {
+  return (
+    <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-yellow-400 text-black">
+        <Icon size={19} />
+      </div>
+
+      <p className="font-bold text-gray-200">{title}</p>
+    </div>
+  );
+}
+
+function StatusMessage({ message }) {
+  return (
+    <p className="mt-4 rounded-2xl border border-white/10 bg-black px-4 py-3 text-sm text-gray-300">
+      {message}
+    </p>
+  );
+}
+
 function HowItWorks() {
   const steps = [
     {
+      icon: Search,
       title: "Browse or Request",
       text: "Search available luxury vehicles or request a specific make and model.",
     },
     {
-      title: "Confirm Vehicle Details",
-      text: "We confirm availability, pricing, condition, and U.S. location.",
+      icon: ShieldCheck,
+      title: "Confirm Details",
+      text: "We confirm availability, pricing, condition, and vehicle details.",
     },
     {
+      icon: Car,
       title: "Purchase Support",
       text: "We help coordinate the U.S. buying process for the selected vehicle.",
     },
     {
+      icon: FileText,
       title: "Export Preparation",
       text: "The vehicle is prepared for export and shipping documentation support.",
     },
     {
+      icon: Truck,
       title: "Ship to Africa",
       text: "We support shipment to Nigeria and other African destinations.",
     },
@@ -1072,33 +1537,36 @@ function HowItWorks() {
   return (
     <section className="bg-black px-4 py-16 sm:px-6 md:px-10 lg:px-20 lg:py-20">
       <div className="mx-auto max-w-7xl">
-        <div className="mb-12 text-center">
-          <p className="text-sm font-bold uppercase tracking-[0.3em] text-yellow-400">
-            How It Works
-          </p>
-
-          <h2 className="mt-3 text-3xl font-black sm:text-4xl md:text-5xl">
-            From U.S. Inventory to African Roads
-          </h2>
-        </div>
+        <SectionHeading
+          eyebrow="How It Works"
+          title="From U.S. Inventory to African Roads"
+        />
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
-          {steps.map((step, index) => (
-            <div
-              key={step.title}
-              className="rounded-[2rem] border border-white/10 bg-white/5 p-5"
-            >
-              <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-400 font-black text-black">
-                {index + 1}
+          {steps.map((step, index) => {
+            const Icon = step.icon;
+
+            return (
+              <div
+                key={step.title}
+                className="rounded-[2rem] border border-white/10 bg-white/5 p-5"
+              >
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-400 font-black text-black">
+                  <Icon size={22} />
+                </div>
+
+                <p className="text-sm font-black text-yellow-400">
+                  Step {index + 1}
+                </p>
+
+                <h3 className="mt-2 text-xl font-black">{step.title}</h3>
+
+                <p className="mt-3 text-sm leading-6 text-gray-400">
+                  {step.text}
+                </p>
               </div>
-
-              <h3 className="text-xl font-black">{step.title}</h3>
-
-              <p className="mt-3 text-sm leading-6 text-gray-400">
-                {step.text}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
@@ -1110,23 +1578,26 @@ function Footer() {
     <footer className="border-t border-white/10 bg-black px-4 py-10 sm:px-6 md:px-10 lg:px-20">
       <div className="mx-auto flex max-w-7xl flex-col justify-between gap-6 md:flex-row md:items-center">
         <div>
-          <div className="mb-4 flex h-20 w-44 items-center justify-center overflow-hidden rounded-2xl bg-white px-3">
-            <img
-              src="/owotee-logo.png"
-              alt="Owotee Luxury Motors Logo"
-              className="h-full w-full object-contain"
-            />
-          </div>
+          <BrandMark />
 
-          <p className="mt-2 text-gray-400">
+          <p className="mt-4 text-gray-400">
             Luxury vehicles sourced in the U.S. and shipped to Africa.
           </p>
         </div>
 
-        <div className="text-gray-400">
-          <p>Focus Destination: Nigeria</p>
-          <p>Email: info@owoteeluxurymotors.com</p>
-          <p>WhatsApp: +1 469 555 0198</p>
+        <div className="grid gap-2 text-gray-400">
+          <p className="flex items-center gap-2">
+            <Globe2 size={17} />
+            Focus Destination: Nigeria
+          </p>
+          <p className="flex items-center gap-2">
+            <Mail size={17} />
+            info@owoteeluxurymotors.com
+          </p>
+          <p className="flex items-center gap-2">
+            <Phone size={17} />
+            +1 469 555 0198
+          </p>
         </div>
       </div>
     </footer>
