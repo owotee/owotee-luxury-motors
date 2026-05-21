@@ -1,16 +1,130 @@
-# React + Vite
+# Owotee Luxury Motors
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Owotee Luxury Motors is a full-stack luxury vehicle sourcing and export website. The platform allows clients to browse luxury vehicles sourced from the United States and message the business about vehicles they are interested in shipping to Africa, especially Nigeria.
 
-Currently, two official plugins are available:
+This project includes a public customer-facing website, a backend API, a SQLite database, and a secured admin dashboard for managing vehicle inventory and customer requests.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## Project Overview
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Owotee Luxury Motors helps clients:
 
-## Expanding the ESLint configuration
+- Browse available luxury vehicles
+- Search and filter inventory
+- View vehicle details
+- Message the business about a specific vehicle
+- Submit a custom vehicle request
+- Contact the business through WhatsApp
+- Request vehicle sourcing from the U.S. market
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+The website does **not** include financing, trade-in, or test-drive features because the business model focuses on buying luxury vehicles in the United States and shipping them to Africa.
+
+---
+
+## Features
+
+### Public Website
+
+- Luxury homepage design
+- Mobile-responsive layout
+- Owotee Luxury Motors logo integration
+- Searchable vehicle inventory
+- Filter vehicles by make, body type, destination, and price
+- Vehicle detail popup/modal
+- “I’m Interested” button for each vehicle
+- Custom vehicle request form
+- WhatsApp contact button
+- How-it-works section
+- Footer with business information
+
+### Vehicle Status
+
+Vehicles can be marked as:
+
+- Available
+- Reserved
+- Sold
+
+When a vehicle is marked as **Sold**, the public inventory disables the “I’m Interested” button.
+
+### Admin Dashboard
+
+The admin dashboard allows the business owner to:
+
+- Log in securely
+- View all vehicles
+- Add new vehicles
+- Edit existing vehicles
+- Delete vehicles
+- View customer interest messages
+- View custom vehicle requests
+- Manage vehicle availability status
+
+### Backend API
+
+The backend provides API routes for:
+
+- Fetching vehicles
+- Submitting interest messages
+- Submitting custom vehicle requests
+- Admin login
+- Admin inventory management
+- Admin message/request viewing
+
+---
+
+## Tech Stack
+
+### Frontend
+
+- React
+- Vite
+- Tailwind CSS
+- JavaScript
+
+### Backend
+
+- Node.js
+- Express.js
+- SQLite
+- JSON Web Token authentication
+- dotenv
+- CORS
+
+### Database
+
+- SQLite database file
+- Tables:
+  - vehicles
+  - interest_messages
+  - vehicle_requests
+
+---
+
+## Project Structure
+
+```text
+owotee-luxury-motors/
+│
+├── backend/
+│   ├── server.js
+│   ├── package.json
+│   ├── .env
+│   └── owotee_luxury_motors.db
+│
+├── public/
+│   └── owotee-logo.png
+│
+├── src/
+│   ├── App.jsx
+│   ├── AdminDashboard.jsx
+│   ├── main.jsx
+│   └── index.css
+│
+├── .env
+├── .gitignore
+├── index.html
+├── package.json
+├── vite.config.js
+└── README.md
