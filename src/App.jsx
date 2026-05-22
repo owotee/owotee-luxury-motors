@@ -611,6 +611,40 @@ function Navbar() {
   );
 }
 
+function HeroImage() {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  if (imageFailed) {
+    return (
+      <div className="flex h-64 w-full items-center justify-center rounded-[1.5rem] bg-gradient-to-br from-zinc-900 via-black to-zinc-950 px-6 text-center sm:h-80 lg:h-[420px]">
+        <div>
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-yellow-400 text-black">
+            <Car size={32} />
+          </div>
+
+          <p className="text-sm font-black uppercase tracking-[0.25em] text-yellow-400">
+            Luxury Vehicle Preview
+          </p>
+
+          <p className="mt-2 text-sm text-gray-400">
+            Vehicle image will appear here.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src="/homepage-car.jpg"
+      alt="Luxury car"
+      className="h-64 w-full rounded-[1.5rem] object-cover sm:h-80 lg:h-[420px]"
+      onError={() => setImageFailed(true)}
+      loading="eager"
+    />
+  );
+}
+
 function HomePage({ vehicles = [], onView, onInterest }) {
   const featuredVehicles =
     vehicles.filter((vehicle) => vehicle.featured).length > 0
@@ -662,11 +696,7 @@ function HomePage({ vehicles = [], onView, onInterest }) {
           </div>
 
           <div className="rounded-[2rem] border border-white/10 bg-white/10 p-4 shadow-2xl backdrop-blur">
-            <img
-              src="/homepage-car.jpg"
-              alt="Luxury car"
-              className="h-64 w-full rounded-[1.5rem] object-cover sm:h-80 lg:h-[420px]"
-            />
+            <HeroImage />
 
             <div className="mt-4 rounded-[1.5rem] bg-black/70 p-5">
               <p className="flex items-center gap-2 text-sm font-bold uppercase tracking-[0.2em] text-yellow-400">
@@ -1151,25 +1181,66 @@ function Stat({ icon: Icon, number, label }) {
   );
 }
 
+function VehicleImagePlaceholder({ vehicle }) {
+  return (
+    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-zinc-900 via-black to-zinc-950 px-6 text-center">
+      <div>
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-yellow-400 text-black">
+          <Car size={28} />
+        </div>
+
+        <p className="text-sm font-black uppercase tracking-[0.25em] text-yellow-400">
+          Image Coming Soon
+        </p>
+
+        <p className="mt-2 text-sm text-gray-400">
+          {vehicle?.year} {vehicle?.make} {vehicle?.model}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function VehicleImageSlider({ vehicle, className }) {
   const images = getVehicleImages(vehicle);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
+  const [failedImages, setFailedImages] = useState([]);
+
+  const workingImages = images.filter((image) => !failedImages.includes(image));
+  const safeIndex =
+    workingImages.length > 0
+      ? Math.min(currentIndex, workingImages.length - 1)
+      : 0;
+
+  const currentImage = workingImages[safeIndex];
+
+  const markImageAsFailed = (image) => {
+    setFailedImages((previous) =>
+      previous.includes(image) ? previous : [...previous, image],
+    );
+
+    setCurrentIndex(0);
+  };
 
   const goPrevious = () => {
+    if (workingImages.length <= 1) return;
+
     setCurrentIndex((current) =>
-      current === 0 ? images.length - 1 : current - 1,
+      current === 0 ? workingImages.length - 1 : current - 1,
     );
   };
 
   const goNext = () => {
+    if (workingImages.length <= 1) return;
+
     setCurrentIndex((current) =>
-      current === images.length - 1 ? 0 : current + 1,
+      current === workingImages.length - 1 ? 0 : current + 1,
     );
   };
 
   const handleTouchEnd = (e) => {
-    if (touchStart === null) return;
+    if (touchStart === null || workingImages.length <= 1) return;
 
     const touchEnd = e.changedTouches[0].clientX;
     const difference = touchStart - touchEnd;
@@ -1187,17 +1258,23 @@ function VehicleImageSlider({ vehicle, className }) {
 
   return (
     <div
-      className={`relative overflow-hidden ${className}`}
+      className={`relative overflow-hidden bg-black ${className}`}
       onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
       onTouchEnd={handleTouchEnd}
     >
-      <img
-        src={images[currentIndex]}
-        alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-        className="h-full w-full object-cover"
-      />
+      {currentImage ? (
+        <img
+          src={currentImage}
+          alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+          className="h-full w-full object-cover"
+          onError={() => markImageAsFailed(currentImage)}
+          loading="lazy"
+        />
+      ) : (
+        <VehicleImagePlaceholder vehicle={vehicle} />
+      )}
 
-      {images.length > 1 && (
+      {workingImages.length > 1 && (
         <>
           <button
             type="button"
@@ -1218,15 +1295,13 @@ function VehicleImageSlider({ vehicle, className }) {
           </button>
 
           <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
-            {images.map((image, index) => (
+            {workingImages.map((image, index) => (
               <button
                 key={`${image}-${index}`}
                 type="button"
                 onClick={() => setCurrentIndex(index)}
                 className={`h-2 rounded-full transition ${
-                  index === currentIndex
-                    ? "w-6 bg-yellow-400"
-                    : "w-2 bg-white/60"
+                  index === safeIndex ? "w-6 bg-yellow-400" : "w-2 bg-white/60"
                 }`}
                 aria-label={`Go to image ${index + 1}`}
               />
