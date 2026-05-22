@@ -1,12 +1,14 @@
-const express = require("express");
-const cors = require("cors");
-const helmet = require("helmet");
-const morgan = require("morgan");
-const rateLimit = require("express-rate-limit");
-const jwt = require("jsonwebtoken");
-const multer = require("multer");
-const { Pool } = require("pg");
-const { put } = require("@vercel/blob");
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import rateLimit from "express-rate-limit";
+import jwt from "jsonwebtoken";
+import multer from "multer";
+import pg from "pg";
+import { put } from "@vercel/blob";
+
+const { Pool } = pg;
 
 const app = express();
 
@@ -748,4 +750,4 @@ app.use((err, req, res, next) => {
   });
 });
 
-module.exports = app;
+export default app;
