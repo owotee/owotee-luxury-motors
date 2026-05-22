@@ -673,7 +673,7 @@ function AdminDashboard() {
   }
 
   return (
-    <section className="min-h-screen bg-[#f5f1ea] text-[#161616]">
+    <section className="min-h-screen overflow-x-hidden bg-[#f5f1ea] text-[#161616]">
       <div className="flex min-h-screen">
         <aside
           className={`fixed inset-y-0 left-0 z-40 w-80 transform border-r border-black/10 bg-[#0b0b0b] text-white transition duration-300 lg:static lg:translate-x-0 ${
@@ -756,7 +756,7 @@ function AdminDashboard() {
           />
         )}
 
-        <main className="flex-1">
+        <main className="min-w-0 flex-1 overflow-x-hidden">
           <header className="sticky top-0 z-20 border-b border-black/10 bg-[#f5f1ea]/90 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
@@ -777,7 +777,7 @@ function AdminDashboard() {
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
+              <div className="flex shrink-0 items-center gap-2">
                 <button
                   onClick={loadDashboard}
                   disabled={loading}
@@ -788,7 +788,7 @@ function AdminDashboard() {
 
                 <button
                   onClick={openCreateEditor}
-                  className="flex items-center gap-2 rounded-2xl bg-black px-4 py-3 text-sm font-black text-white shadow-lg transition hover:bg-yellow-400 hover:text-black"
+                  className="flex items-center gap-2 rounded-2xl bg-black px-3 py-3 text-sm font-black text-white shadow-lg transition hover:bg-yellow-400 hover:text-black sm:px-4"
                 >
                   <Plus size={18} />
                   Add Vehicle
@@ -797,7 +797,7 @@ function AdminDashboard() {
             </div>
           </header>
 
-          <div className="px-4 py-6 sm:px-6 lg:px-8">
+          <div className="w-full max-w-full overflow-x-hidden px-3 py-5 sm:px-6 lg:px-8">
             {error && <Alert type="error" message={error} />}
             {notice && <Alert type="success" message={notice} />}
 
@@ -963,7 +963,7 @@ function OverviewPanel({
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-        <div className="rounded-[2rem] border border-black/10 bg-black p-6 text-white shadow-xl">
+        <div className="max-w-full overflow-hidden rounded-[1.5rem] border border-black/10 bg-black p-5 text-white shadow-xl sm:rounded-[2rem] sm:p-6">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
             <div>
               <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-yellow-400/10 px-4 py-2 text-sm font-bold text-yellow-300">
@@ -971,11 +971,11 @@ function OverviewPanel({
                 Luxury Export Operations
               </div>
 
-              <h2 className="text-3xl font-black tracking-tight">
+              <h2 className="max-w-full break-words text-3xl font-black leading-tight tracking-tight sm:text-4xl">
                 Manage listings with a cleaner, faster workflow.
               </h2>
 
-              <p className="mt-3 max-w-2xl text-white/65">
+              <p className="mt-3 max-w-full break-words text-sm leading-7 text-white/65 sm:max-w-2xl sm:text-base">
                 Add premium cars, mark featured inventory, track buyer interest,
                 and handle custom sourcing requests from one executive-style
                 panel.
@@ -984,14 +984,14 @@ function OverviewPanel({
 
             <button
               onClick={openCreateEditor}
-              className="flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-yellow-400 px-5 py-4 font-black text-black transition hover:bg-yellow-300"
+              className="flex w-full shrink-0 items-center justify-center gap-2 rounded-2xl bg-yellow-400 px-5 py-4 font-black text-black transition hover:bg-yellow-300 md:w-auto"
             >
               <Plus size={20} />
               Add Vehicle
             </button>
           </div>
 
-          <div className="mt-8 grid gap-3 sm:grid-cols-4">
+          <div className="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <MiniMetric label="Available Soon" value={stats.availableSoon} />
             <MiniMetric label="Reserved" value={stats.reserved} />
             <MiniMetric label="Sold" value={stats.sold} />
