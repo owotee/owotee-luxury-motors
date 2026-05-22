@@ -1,147 +1,60 @@
 import { useEffect, useMemo, useState } from "react";
+import {
+  BarChart3,
+  Camera,
+  Car,
+  CheckCircle2,
+  ChevronDown,
+  Crown,
+  Edit3,
+  Eye,
+  Gauge,
+  Globe2,
+  ImagePlus,
+  Inbox,
+  Loader2,
+  LogOut,
+  Mail,
+  Menu,
+  MessageSquare,
+  Plus,
+  Search,
+  Send,
+  ShieldCheck,
+  Sparkles,
+  Star,
+  Trash2,
+  UploadCloud,
+  UserRound,
+  X,
+} from "lucide-react";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-const vehicleMakes = [
-  "Mercedes-Benz",
-  "Lexus",
-  "Range Rover",
-  "BMW",
-  "Porsche",
-  "Cadillac",
-  "Audi",
-  "Bentley",
-  "Rolls-Royce",
-  "Toyota",
-  "Land Rover",
-  "McLaren",
-  "Lamborghini",
-  "Ferrari",
-];
+const getApiBaseUrl = () => API_URL.replace("/api", "");
 
-const modelsByMake = {
-  "Mercedes-Benz": [
-    "G-Class G 550",
-    "G-Class AMG G 63",
-    "S 580 4MATIC",
-    "GLS 580",
-    "GLE 350",
-    "GLE 53 AMG",
-    "Maybach GLS 600",
-  ],
-  Lexus: ["LX 600 Premium", "LX 600 F Sport", "GX 550", "RX 500h", "LS 500"],
-  "Range Rover": [
-    "Range Rover Sport HSE",
-    "Range Rover Autobiography",
-    "Range Rover Vogue",
-    "Range Rover Velar",
-    "Range Rover Evoque",
-  ],
-  BMW: [
-    "X7 xDrive40i",
-    "X7 M60i",
-    "X5 xDrive40i",
-    "740i",
-    "760i",
-    "M850 xDrive",
-  ],
-  Porsche: ["Cayenne Platinum", "Cayenne S", "Panamera", "Macan GTS"],
-  Cadillac: ["Escalade Premium Luxury", "Escalade Sport", "Escalade ESV"],
-  Audi: ["Q8", "Q7", "A8L", "RS Q8"],
-  Bentley: ["Bentayga", "Continental GT", "Flying Spur"],
-  "Rolls-Royce": ["Cullinan", "Ghost", "Phantom", "Wraith"],
-  Toyota: ["Land Cruiser VX", "Land Cruiser GR Sport", "Sequoia Capstone"],
-  "Land Rover": ["Defender 110", "Defender 130", "Discovery"],
-  McLaren: ["720S", "750S", "Artura", "GT"],
-  Lamborghini: ["Urus", "Huracan", "Aventador", "Revuelto"],
-  Ferrari: ["Roma", "Portofino", "F8 Tributo", "SF90 Stradale"],
+const resolveImageUrl = (imageUrl) => {
+  if (!imageUrl) return "";
+  if (imageUrl.startsWith("http")) return imageUrl;
+  if (imageUrl.startsWith("/uploads")) return `${getApiBaseUrl()}${imageUrl}`;
+  return imageUrl;
 };
 
-const years = Array.from({ length: 17 }, (_, index) => String(2026 - index));
+const formatCurrency = (value) => {
+  const number = Number(value || 0);
 
-const bodyTypes = [
-  "SUV",
-  "Sedan",
-  "Coupe",
-  "Truck",
-  "Convertible",
-  "Electric Luxury",
-  "Performance SUV",
-  "Sports Car",
-  "Supercar",
-];
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(number);
+};
 
-const colors = [
-  "Black",
-  "White",
-  "Silver",
-  "Gray",
-  "Blue",
-  "Red",
-  "Green",
-  "Brown",
-  "Beige",
-  "Tan",
-  "Gold",
-  "Pearl White",
-  "Obsidian Black",
-  "Santorini Black",
-  "Atomic Silver",
-  "Crystal White",
-];
+const formatNumber = (value) => {
+  return new Intl.NumberFormat("en-US").format(Number(value || 0));
+};
 
-const interiors = [
-  "Black Leather",
-  "Brown Leather",
-  "Tan Leather",
-  "Beige Leather",
-  "Red Leather",
-  "White Leather",
-  "Ebony Leather",
-  "Coffee Leather",
-  "Nappa Leather",
-];
-
-const transmissions = ["Automatic", "Manual", "Single-Speed"];
-
-const engines = [
-  "2.0L Turbo",
-  "3.0L Turbo I6",
-  "3.0L Mild Hybrid",
-  "3.4L Twin-Turbo V6",
-  "4.0L V8",
-  "4.0L V8 Biturbo",
-  "5.7L V8",
-  "6.2L V8",
-  "Electric",
-  "Hybrid",
-];
-
-const destinations = [
-  "Nigeria",
-  "Ghana",
-  "Kenya",
-  "South Africa",
-  "Cameroon",
-  "Benin",
-  "Togo",
-  "Ivory Coast",
-  "Senegal",
-];
-
-const statuses = ["Available", "Available Soon", "Reserved", "Sold"];
-
-const badges = [
-  "New Arrival",
-  "High Demand",
-  "Export Favorite",
-  "Executive SUV",
-  "Luxury Pick",
-  "Performance",
-  "Family Luxury",
-  "Reserved",
-  "Sold",
-];
+const sanitizePhone = (value) => value.replace(/[^\d+\s()-]/g, "");
 
 const emptyVehicleForm = {
   year: "",
@@ -162,87 +75,227 @@ const emptyVehicleForm = {
   features: "",
 };
 
-async function readResponse(response) {
-  const text = await response.text();
+const makes = [
+  "Mercedes-Benz",
+  "BMW",
+  "Lexus",
+  "Toyota",
+  "Land Rover",
+  "Range Rover",
+  "Porsche",
+  "Bentley",
+  "Rolls-Royce",
+  "Cadillac",
+  "Audi",
+  "Tesla",
+  "Genesis",
+  "Lincoln",
+];
 
-  try {
-    return text ? JSON.parse(text) : {};
-  } catch {
-    return {
-      success: false,
-      message: text || "Server returned an invalid response.",
-    };
-  }
-}
+const bodyTypes = [
+  "SUV",
+  "Sedan",
+  "Coupe",
+  "Convertible",
+  "Pickup",
+  "Truck",
+  "Van",
+  "Wagon",
+];
 
-function getApiBaseUrl() {
-  return API_URL.replace("/api", "");
-}
+const destinations = [
+  "Nigeria",
+  "Ghana",
+  "Kenya",
+  "South Africa",
+  "Liberia",
+  "Sierra Leone",
+  "Cameroon",
+  "United Arab Emirates",
+  "Worldwide",
+];
 
-function resolveImageUrl(imageUrl) {
-  if (!imageUrl) {
-    return "";
-  }
+const colors = [
+  "Black",
+  "White",
+  "Pearl White",
+  "Silver",
+  "Gray",
+  "Graphite",
+  "Blue",
+  "Red",
+  "Burgundy",
+  "Green",
+  "Gold",
+  "Brown",
+];
 
-  if (imageUrl.startsWith("http")) {
-    return imageUrl;
-  }
+const interiors = [
+  "Black Leather",
+  "Brown Leather",
+  "Beige Leather",
+  "White Leather",
+  "Red Leather",
+  "Tan Leather",
+  "Two-Tone Leather",
+];
 
-  if (imageUrl.startsWith("/uploads")) {
-    return `${getApiBaseUrl()}${imageUrl}`;
-  }
+const transmissions = ["Automatic", "Manual", "CVT", "Dual-Clutch"];
 
-  return imageUrl;
-}
+const engines = [
+  "V4",
+  "V6",
+  "V8",
+  "V12",
+  "Hybrid",
+  "Plug-in Hybrid",
+  "Electric",
+  "Turbocharged",
+];
 
-function getImageList(imageText) {
-  return imageText
-    ? imageText
-        .split(",")
-        .map((image) => image.trim())
-        .filter(Boolean)
-    : [];
-}
+const statuses = ["Available", "Available Soon", "Reserved", "Sold"];
+
+const badges = [
+  "New Arrival",
+  "Featured",
+  "Premium Pick",
+  "Hot Deal",
+  "Export Ready",
+  "Low Mileage",
+  "Luxury Selection",
+];
+
+const years = Array.from({ length: 18 }, (_, index) =>
+  String(new Date().getFullYear() + 1 - index),
+);
 
 function AdminDashboard() {
   const [token, setToken] = useState(
-    () => localStorage.getItem("owoteeAdminToken") || "",
+    localStorage.getItem("owoteeAdminToken") || "",
   );
-
   const [loginForm, setLoginForm] = useState({
     username: "",
     password: "",
   });
 
-  const [activeTab, setActiveTab] = useState("inventory");
   const [vehicles, setVehicles] = useState([]);
-  const [interestMessages, setInterestMessages] = useState([]);
-  const [vehicleRequests, setVehicleRequests] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [requests, setRequests] = useState([]);
+
+  const [activeTab, setActiveTab] = useState("overview");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const [vehicleForm, setVehicleForm] = useState(emptyVehicleForm);
   const [editingVehicleId, setEditingVehicleId] = useState(null);
-  const [status, setStatus] = useState("");
+  const [editorOpen, setEditorOpen] = useState(false);
+
+  const [inventorySearch, setInventorySearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [uploading, setUploading] = useState(false);
+
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [uploadingImages, setUploadingImages] = useState(false);
+  const [loginLoading, setLoginLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
 
-  const modelOptions = useMemo(() => {
-    return modelsByMake[vehicleForm.make] || [];
-  }, [vehicleForm.make]);
+  const authedFetch = async (endpoint, options = {}) => {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        ...(options.headers || {}),
+      },
+    });
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.message || "Request failed.");
+    }
+
+    return data;
+  };
+
+  const clearAlerts = () => {
+    setError("");
+    setNotice("");
+  };
+
+  const loadDashboard = async () => {
+    if (!token) return;
+
+    setLoading(true);
+    clearAlerts();
+
+    try {
+      const [vehiclesData, messagesData, requestsData] = await Promise.all([
+        fetch(`${API_URL}/vehicles`).then((res) => res.json()),
+        authedFetch("/admin/interest-messages"),
+        authedFetch("/admin/vehicle-requests"),
+      ]);
+
+      setVehicles(vehiclesData.vehicles || []);
+      setMessages(messagesData.messages || []);
+      setRequests(requestsData.requests || []);
+    } catch (err) {
+      setError(err.message || "Unable to load dashboard.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (token) {
-      loadAdminData(token);
-    }
+    loadDashboard();
   }, [token]);
 
-  const authHeaders = (adminToken = token) => ({
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${adminToken}`,
-  });
+  const stats = useMemo(() => {
+    const available = vehicles.filter(
+      (vehicle) => vehicle.status === "Available",
+    ).length;
+    const availableSoon = vehicles.filter(
+      (vehicle) => vehicle.status === "Available Soon",
+    ).length;
+    const reserved = vehicles.filter(
+      (vehicle) => vehicle.status === "Reserved",
+    ).length;
+    const sold = vehicles.filter((vehicle) => vehicle.status === "Sold").length;
+    const featured = vehicles.filter((vehicle) => vehicle.featured).length;
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setStatus("Logging in...");
+    return {
+      total: vehicles.length,
+      available,
+      availableSoon,
+      reserved,
+      sold,
+      featured,
+      messages: messages.length,
+      requests: requests.length,
+    };
+  }, [vehicles, messages, requests]);
+
+  const filteredVehicles = useMemo(() => {
+    const searchValue = inventorySearch.toLowerCase().trim();
+
+    return vehicles.filter((vehicle) => {
+      const matchesSearch =
+        !searchValue ||
+        `${vehicle.year} ${vehicle.make} ${vehicle.model} ${vehicle.body} ${vehicle.destination} ${vehicle.exterior}`
+          .toLowerCase()
+          .includes(searchValue);
+
+      const matchesStatus =
+        statusFilter === "All" || vehicle.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+  }, [vehicles, inventorySearch, statusFilter]);
+
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    setLoginLoading(true);
+    clearAlerts();
 
     try {
       const response = await fetch(`${API_URL}/admin/login`, {
@@ -253,266 +306,38 @@ function AdminDashboard() {
         body: JSON.stringify(loginForm),
       });
 
-      const data = await readResponse(response);
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Login failed.");
+        throw new Error(data.message || "Invalid login.");
       }
 
       localStorage.setItem("owoteeAdminToken", data.token);
       setToken(data.token);
-      setStatus("Login successful.");
-    } catch (error) {
-      setStatus(error.message);
+      setNotice("Login successful.");
+    } catch (err) {
+      setError(err.message || "Unable to login.");
+    } finally {
+      setLoginLoading(false);
     }
   };
 
   const handleLogout = () => {
     localStorage.removeItem("owoteeAdminToken");
     setToken("");
-    setStatus("");
     setVehicles([]);
-    setInterestMessages([]);
-    setVehicleRequests([]);
+    setMessages([]);
+    setRequests([]);
   };
 
-  const loadAdminData = async (adminToken = token) => {
-    try {
-      setLoading(true);
-
-      const vehiclesResponse = await fetch(`${API_URL}/vehicles`);
-
-      const interestResponse = await fetch(
-        `${API_URL}/admin/interest-messages`,
-        {
-          headers: authHeaders(adminToken),
-        },
-      );
-
-      const requestsResponse = await fetch(
-        `${API_URL}/admin/vehicle-requests`,
-        {
-          headers: authHeaders(adminToken),
-        },
-      );
-
-      const vehiclesData = await readResponse(vehiclesResponse);
-      const interestData = await readResponse(interestResponse);
-      const requestsData = await readResponse(requestsResponse);
-
-      if (vehiclesData.success) {
-        setVehicles(vehiclesData.vehicles || []);
-      }
-
-      if (interestData.success) {
-        setInterestMessages(interestData.messages || []);
-      } else if (interestResponse.status === 401) {
-        handleLogout();
-        setStatus("Session expired. Please log in again.");
-      }
-
-      if (requestsData.success) {
-        setVehicleRequests(requestsData.requests || []);
-      }
-    } catch (error) {
-      console.error(error);
-      setStatus("Failed to load admin data. Make sure the backend is running.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVehicleFormChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
-    setVehicleForm((previousForm) => {
-      if (name === "make") {
-        return {
-          ...previousForm,
-          make: value,
-          model: "",
-        };
-      }
-
-      return {
-        ...previousForm,
-        [name]: type === "checkbox" ? checked : value,
-      };
-    });
-  };
-
-  const resetVehicleForm = () => {
-    setVehicleForm(emptyVehicleForm);
+  const openCreateEditor = () => {
     setEditingVehicleId(null);
-    setStatus("");
+    setVehicleForm(emptyVehicleForm);
+    setEditorOpen(true);
+    clearAlerts();
   };
 
-  const validateVehicleForm = () => {
-    const requiredFields = [
-      "year",
-      "make",
-      "model",
-      "body",
-      "price",
-      "mileage",
-      "destination",
-      "exterior",
-    ];
-
-    for (const field of requiredFields) {
-      if (!String(vehicleForm[field]).trim()) {
-        return `Please fill in ${field}.`;
-      }
-    }
-
-    if (Number.isNaN(Number(vehicleForm.price))) {
-      return "Price must be a number. Do not include commas or dollar signs.";
-    }
-
-    if (Number.isNaN(Number(vehicleForm.mileage))) {
-      return "Mileage must be a number. Do not include commas.";
-    }
-
-    return "";
-  };
-
-  const handleImageUpload = async (e) => {
-    const files = Array.from(e.target.files || []);
-
-    if (files.length === 0) {
-      return;
-    }
-
-    const formData = new FormData();
-
-    files.forEach((file) => {
-      formData.append("images", file);
-    });
-
-    try {
-      setUploadingImages(true);
-      setStatus("Uploading images...");
-
-      const response = await fetch(`${API_URL}/admin/upload`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
-      });
-
-      const data = await readResponse(response);
-
-      if (response.status === 401) {
-        handleLogout();
-        throw new Error("Session expired. Please log in again.");
-      }
-
-      if (!response.ok) {
-        throw new Error(data.message || "Image upload failed.");
-      }
-
-      const uploadedImages = data.imageUrls || [];
-
-      setVehicleForm((previousForm) => {
-        const existingImages = getImageList(previousForm.image);
-        const allImages = [...existingImages, ...uploadedImages];
-
-        return {
-          ...previousForm,
-          image: allImages.join(", "),
-        };
-      });
-
-      setStatus("Images uploaded successfully.");
-    } catch (error) {
-      console.error(error);
-      setStatus(error.message);
-    } finally {
-      setUploadingImages(false);
-      e.target.value = "";
-    }
-  };
-
-  const handleRemoveImage = (imageToRemove) => {
-    setVehicleForm((previousForm) => {
-      const remainingImages = getImageList(previousForm.image).filter(
-        (image) => image !== imageToRemove,
-      );
-
-      return {
-        ...previousForm,
-        image: remainingImages.join(", "),
-      };
-    });
-  };
-
-  const handleVehicleSubmit = async (e) => {
-    e.preventDefault();
-
-    const validationError = validateVehicleForm();
-
-    if (validationError) {
-      setStatus(validationError);
-      return;
-    }
-
-    const vehiclePayload = {
-      ...vehicleForm,
-      year: Number(vehicleForm.year),
-      price: Number(vehicleForm.price),
-      mileage: Number(vehicleForm.mileage),
-    };
-
-    const isEditing = Boolean(editingVehicleId);
-
-    const url = isEditing
-      ? `${API_URL}/admin/vehicles/${editingVehicleId}`
-      : `${API_URL}/admin/vehicles`;
-
-    const method = isEditing ? "PUT" : "POST";
-
-    try {
-      setSaving(true);
-      setStatus(isEditing ? "Updating vehicle..." : "Adding vehicle...");
-
-      const response = await fetch(url, {
-        method,
-        headers: authHeaders(),
-        body: JSON.stringify(vehiclePayload),
-      });
-
-      const data = await readResponse(response);
-
-      if (response.status === 401) {
-        handleLogout();
-        throw new Error("Session expired. Please log in again.");
-      }
-
-      if (!response.ok) {
-        throw new Error(data.message || "Vehicle save failed.");
-      }
-
-      setStatus(
-        data.message ||
-          (isEditing
-            ? "Vehicle updated successfully."
-            : "Vehicle added successfully."),
-      );
-
-      setVehicleForm(emptyVehicleForm);
-      setEditingVehicleId(null);
-      await loadAdminData();
-    } catch (error) {
-      console.error(error);
-      setStatus(error.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleEditVehicle = (vehicle) => {
-    setActiveTab("inventory");
+  const openEditEditor = (vehicle) => {
     setEditingVehicleId(vehicle.id);
 
     setVehicleForm({
@@ -528,7 +353,7 @@ function AdminDashboard() {
       engine: vehicle.engine || "",
       transmission: vehicle.transmission || "Automatic",
       image: vehicle.image || "",
-      badge: vehicle.badge || "New Arrival",
+      badge: vehicle.badge || "",
       status: vehicle.status || "Available",
       featured: Boolean(vehicle.featured),
       features: Array.isArray(vehicle.features)
@@ -536,241 +361,1385 @@ function AdminDashboard() {
         : vehicle.features || "",
     });
 
-    setStatus(`Editing ${vehicle.year} ${vehicle.make} ${vehicle.model}`);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setEditorOpen(true);
+    clearAlerts();
   };
 
-  const handleDeleteVehicle = async (vehicleId) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this vehicle?",
-    );
+  const closeEditor = () => {
+    setEditorOpen(false);
+    setEditingVehicleId(null);
+    setVehicleForm(emptyVehicleForm);
+  };
 
-    if (!confirmed) {
-      return;
-    }
+  const handleVehicleChange = (event) => {
+    const { name, value, type, checked } = event.target;
+
+    setVehicleForm((previous) => ({
+      ...previous,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
+
+  const handleImageUpload = async (event) => {
+    const files = Array.from(event.target.files || []);
+
+    if (!files.length) return;
+
+    setUploading(true);
+    clearAlerts();
 
     try {
-      setStatus("Deleting vehicle...");
+      const formData = new FormData();
 
-      const response = await fetch(`${API_URL}/admin/vehicles/${vehicleId}`, {
-        method: "DELETE",
-        headers: authHeaders(),
+      files.forEach((file) => {
+        formData.append("images", file);
       });
 
-      const data = await readResponse(response);
+      const response = await fetch(`${API_URL}/admin/upload`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      });
 
-      if (response.status === 401) {
-        handleLogout();
-        throw new Error("Session expired. Please log in again.");
-      }
+      const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Delete failed.");
+        throw new Error(data.message || "Image upload failed.");
       }
 
-      setStatus(data.message || "Vehicle deleted successfully.");
-      await loadAdminData();
-    } catch (error) {
-      console.error(error);
-      setStatus(error.message);
+      const existingImages = vehicleForm.image
+        ? vehicleForm.image
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean)
+        : [];
+
+      const updatedImages = [...existingImages, ...(data.imageUrls || [])];
+
+      setVehicleForm((previous) => ({
+        ...previous,
+        image: updatedImages.join(", "),
+      }));
+
+      setNotice("Image uploaded successfully.");
+    } catch (err) {
+      setError(err.message || "Unable to upload image.");
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  };
+
+  const removeImage = (imageToRemove) => {
+    const updatedImages = vehicleForm.image
+      .split(",")
+      .map((item) => item.trim())
+      .filter((item) => item && item !== imageToRemove);
+
+    setVehicleForm((previous) => ({
+      ...previous,
+      image: updatedImages.join(", "),
+    }));
+  };
+
+  const handleSaveVehicle = async (event) => {
+    event.preventDefault();
+
+    setSaving(true);
+    clearAlerts();
+
+    const payload = {
+      ...vehicleForm,
+      price: Number(vehicleForm.price),
+      mileage: Number(vehicleForm.mileage),
+      year: Number(vehicleForm.year),
+    };
+
+    try {
+      if (editingVehicleId) {
+        await authedFetch(`/admin/vehicles/${editingVehicleId}`, {
+          method: "PUT",
+          body: JSON.stringify(payload),
+        });
+
+        setNotice("Vehicle updated successfully.");
+      } else {
+        await authedFetch("/admin/vehicles", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+
+        setNotice("Vehicle added successfully.");
+      }
+
+      closeEditor();
+      await loadDashboard();
+      setActiveTab("inventory");
+    } catch (err) {
+      setError(err.message || "Unable to save vehicle.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDeleteVehicle = async (vehicle) => {
+    const confirmed = window.confirm(
+      `Delete ${vehicle.year} ${vehicle.make} ${vehicle.model}? This cannot be undone.`,
+    );
+
+    if (!confirmed) return;
+
+    clearAlerts();
+
+    try {
+      await authedFetch(`/admin/vehicles/${vehicle.id}`, {
+        method: "DELETE",
+      });
+
+      setNotice("Vehicle deleted successfully.");
+      await loadDashboard();
+    } catch (err) {
+      setError(err.message || "Unable to delete vehicle.");
     }
   };
 
   if (!token) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-black px-6 text-white">
-        <form
-          onSubmit={handleLogin}
-          className="w-full max-w-md rounded-[2rem] border border-white/10 bg-white/5 p-8 shadow-2xl"
-        >
-          <p className="text-sm font-bold uppercase tracking-[0.3em] text-yellow-400">
-            Owotee Luxury Motors
-          </p>
+      <section className="min-h-screen bg-[#080808] text-white">
+        <div className="mx-auto flex min-h-screen max-w-7xl items-center justify-center px-4 py-10">
+          <div className="grid w-full overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.03] shadow-2xl lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="relative hidden min-h-[680px] overflow-hidden bg-gradient-to-br from-[#111] via-[#19140b] to-black p-10 lg:block">
+              <div className="absolute inset-0 opacity-30">
+                <div className="absolute left-20 top-20 h-64 w-64 rounded-full bg-yellow-500 blur-[120px]" />
+                <div className="absolute bottom-24 right-14 h-72 w-72 rounded-full bg-white blur-[150px]" />
+              </div>
 
-          <h1 className="mt-3 text-4xl font-black">Admin Login</h1>
+              <div className="relative z-10 flex h-full flex-col justify-between">
+                <div>
+                  <div className="mb-10 inline-flex items-center gap-3 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm text-yellow-200">
+                    <Crown size={18} />
+                    Owotee Luxury Motors Admin
+                  </div>
 
-          <p className="mt-3 text-gray-400">
-            Enter your admin username and password to manage inventory and
-            customer messages.
-          </p>
+                  <h1 className="max-w-xl text-5xl font-black leading-tight tracking-tight">
+                    Command center for luxury exports.
+                  </h1>
 
-          <div className="mt-8 grid gap-4">
-            <input
-              className="input"
-              placeholder="Username"
-              value={loginForm.username}
-              onChange={(e) =>
-                setLoginForm({ ...loginForm, username: e.target.value })
-              }
-            />
+                  <p className="mt-6 max-w-lg text-lg leading-8 text-white/70">
+                    Manage premium inventory, customer interest, custom sourcing
+                    requests, featured vehicles, and export-ready listings from
+                    one polished dashboard.
+                  </p>
+                </div>
 
-            <input
-              className="input"
-              type="password"
-              placeholder="Password"
-              value={loginForm.password}
-              onChange={(e) =>
-                setLoginForm({ ...loginForm, password: e.target.value })
-              }
-            />
+                <div className="grid grid-cols-3 gap-4">
+                  <LoginFeature icon={Car} label="Inventory" />
+                  <LoginFeature icon={Globe2} label="Exports" />
+                  <LoginFeature icon={ShieldCheck} label="Secure Admin" />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex min-h-[680px] items-center justify-center p-6 sm:p-10">
+              <form
+                onSubmit={handleLogin}
+                className="w-full max-w-md rounded-[2rem] border border-white/10 bg-white/[0.04] p-6 shadow-2xl sm:p-8"
+              >
+                <div className="mb-8 text-center">
+                  <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-yellow-400 text-black shadow-lg shadow-yellow-500/20">
+                    <Crown size={30} />
+                  </div>
+
+                  <h2 className="text-3xl font-black tracking-tight">
+                    Admin Login
+                  </h2>
+
+                  <p className="mt-2 text-sm text-white/60">
+                    Sign in to manage Owotee Luxury Motors.
+                  </p>
+                </div>
+
+                {error && <Alert type="error" message={error} />}
+
+                <div className="space-y-4">
+                  <InputField
+                    label="Username"
+                    name="username"
+                    value={loginForm.username}
+                    onChange={(event) =>
+                      setLoginForm((previous) => ({
+                        ...previous,
+                        username: event.target.value,
+                      }))
+                    }
+                    icon={UserRound}
+                    placeholder="Enter admin username"
+                    required
+                  />
+
+                  <InputField
+                    label="Password"
+                    name="password"
+                    type="password"
+                    value={loginForm.password}
+                    onChange={(event) =>
+                      setLoginForm((previous) => ({
+                        ...previous,
+                        password: event.target.value,
+                      }))
+                    }
+                    icon={ShieldCheck}
+                    placeholder="Enter admin password"
+                    required
+                  />
+
+                  <button
+                    type="submit"
+                    disabled={loginLoading}
+                    className="flex w-full items-center justify-center gap-2 rounded-2xl bg-yellow-400 px-5 py-4 font-black text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-70"
+                  >
+                    {loginLoading ? (
+                      <Loader2 className="animate-spin" size={20} />
+                    ) : (
+                      <ShieldCheck size={20} />
+                    )}
+                    Login to Dashboard
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-
-          <button
-            type="submit"
-            className="mt-5 w-full rounded-full bg-yellow-400 px-6 py-4 font-bold text-black hover:bg-yellow-300"
-          >
-            Login
-          </button>
-
-          {status && (
-            <p className="mt-4 rounded-2xl border border-white/10 bg-black px-4 py-3 text-sm text-gray-300">
-              {status}
-            </p>
-          )}
-
-          <a
-            href="/"
-            className="mt-5 block text-center text-sm font-bold text-gray-400 hover:text-yellow-400"
-          >
-            Back to Website
-          </a>
-        </form>
-      </main>
+        </div>
+      </section>
     );
   }
 
   return (
-    <main className="min-h-screen bg-black text-white">
-      <header className="border-b border-white/10 bg-zinc-950 px-6 py-6">
-        <div className="mx-auto flex max-w-7xl flex-col justify-between gap-4 md:flex-row md:items-center">
-          <div>
-            <h1 className="text-3xl font-black">
-              Owotee <span className="text-yellow-400">Admin Dashboard</span>
-            </h1>
+    <section className="min-h-screen bg-[#f5f1ea] text-[#161616]">
+      <div className="flex min-h-screen">
+        <aside
+          className={`fixed inset-y-0 left-0 z-40 w-80 transform border-r border-black/10 bg-[#0b0b0b] text-white transition duration-300 lg:static lg:translate-x-0 ${
+            sidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          <div className="flex h-full flex-col">
+            <div className="flex items-center justify-between border-b border-white/10 p-6">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-400 text-black">
+                  <Crown size={25} />
+                </div>
 
-            <p className="mt-2 text-gray-400">
-              Manage inventory, uploaded images, customer messages, and vehicle
-              requests.
-            </p>
-          </div>
+                <div>
+                  <p className="text-lg font-black leading-tight">Owotee</p>
+                  <p className="text-xs uppercase tracking-[0.28em] text-yellow-300">
+                    Admin
+                  </p>
+                </div>
+              </div>
 
-          <div className="flex flex-wrap gap-3">
-            <a
-              href="/"
-              className="rounded-full border border-white/20 px-6 py-3 text-center font-bold hover:bg-white hover:text-black"
-            >
-              Back to Website
-            </a>
-
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="rounded-full bg-red-500 px-6 py-3 font-bold text-white hover:bg-red-400"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <section className="px-6 py-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-8 flex flex-wrap gap-3">
-            <TabButton
-              active={activeTab === "inventory"}
-              onClick={() => setActiveTab("inventory")}
-            >
-              Inventory
-            </TabButton>
-
-            <TabButton
-              active={activeTab === "interest"}
-              onClick={() => setActiveTab("interest")}
-            >
-              Interest Messages
-            </TabButton>
-
-            <TabButton
-              active={activeTab === "requests"}
-              onClick={() => setActiveTab("requests")}
-            >
-              Vehicle Requests
-            </TabButton>
-          </div>
-
-          {status && (
-            <div className="mb-6 rounded-2xl border border-white/10 bg-zinc-950 px-5 py-4 text-gray-300">
-              {status}
+              <button
+                onClick={() => setSidebarOpen(false)}
+                className="rounded-xl p-2 text-white/70 hover:bg-white/10 lg:hidden"
+              >
+                <X size={22} />
+              </button>
             </div>
-          )}
 
-          {loading ? (
-            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-10 text-center">
-              Loading admin data...
+            <nav className="flex-1 space-y-2 p-4">
+              <SidebarButton
+                icon={BarChart3}
+                label="Overview"
+                active={activeTab === "overview"}
+                onClick={() => {
+                  setActiveTab("overview");
+                  setSidebarOpen(false);
+                }}
+              />
+              <SidebarButton
+                icon={Car}
+                label="Inventory"
+                active={activeTab === "inventory"}
+                count={vehicles.length}
+                onClick={() => {
+                  setActiveTab("inventory");
+                  setSidebarOpen(false);
+                }}
+              />
+              <SidebarButton
+                icon={Inbox}
+                label="Interest Messages"
+                active={activeTab === "messages"}
+                count={messages.length}
+                onClick={() => {
+                  setActiveTab("messages");
+                  setSidebarOpen(false);
+                }}
+              />
+              <SidebarButton
+                icon={Send}
+                label="Vehicle Requests"
+                active={activeTab === "requests"}
+                count={requests.length}
+                onClick={() => {
+                  setActiveTab("requests");
+                  setSidebarOpen(false);
+                }}
+              />
+            </nav>
+
+            <div className="border-t border-white/10 p-4">
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 px-4 py-3 font-bold text-white/80 transition hover:bg-white/10"
+              >
+                <LogOut size={18} />
+                Logout
+              </button>
             </div>
-          ) : (
-            <>
-              {activeTab === "inventory" && (
-                <InventoryAdmin
-                  vehicles={vehicles}
-                  vehicleForm={vehicleForm}
-                  modelOptions={modelOptions}
-                  editingVehicleId={editingVehicleId}
-                  saving={saving}
-                  uploadingImages={uploadingImages}
-                  onChange={handleVehicleFormChange}
-                  onImageUpload={handleImageUpload}
-                  onRemoveImage={handleRemoveImage}
-                  onSubmit={handleVehicleSubmit}
-                  onReset={resetVehicleForm}
-                  onEdit={handleEditVehicle}
-                  onDelete={handleDeleteVehicle}
-                />
-              )}
+          </div>
+        </aside>
 
-              {activeTab === "interest" && (
-                <InterestMessages messages={interestMessages} />
-              )}
+        {sidebarOpen && (
+          <button
+            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
+          />
+        )}
 
-              {activeTab === "requests" && (
-                <VehicleRequests requests={vehicleRequests} />
-              )}
-            </>
-          )}
-        </div>
-      </section>
-    </main>
+        <main className="flex-1">
+          <header className="sticky top-0 z-20 border-b border-black/10 bg-[#f5f1ea]/90 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setSidebarOpen(true)}
+                  className="rounded-2xl bg-black p-3 text-white lg:hidden"
+                >
+                  <Menu size={20} />
+                </button>
+
+                <div>
+                  <p className="text-sm font-bold uppercase tracking-[0.2em] text-black/50">
+                    Dashboard
+                  </p>
+                  <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
+                    {activeTab === "overview" && "Business Overview"}
+                    {activeTab === "inventory" && "Vehicle Inventory"}
+                    {activeTab === "messages" && "Customer Interest"}
+                    {activeTab === "requests" && "Custom Requests"}
+                  </h1>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={loadDashboard}
+                  disabled={loading}
+                  className="hidden rounded-2xl border border-black/10 bg-white px-4 py-3 text-sm font-black shadow-sm transition hover:bg-black hover:text-white sm:flex"
+                >
+                  {loading ? "Refreshing..." : "Refresh"}
+                </button>
+
+                <button
+                  onClick={openCreateEditor}
+                  className="flex items-center gap-2 rounded-2xl bg-black px-4 py-3 text-sm font-black text-white shadow-lg transition hover:bg-yellow-400 hover:text-black"
+                >
+                  <Plus size={18} />
+                  Add Vehicle
+                </button>
+              </div>
+            </div>
+          </header>
+
+          <div className="px-4 py-6 sm:px-6 lg:px-8">
+            {error && <Alert type="error" message={error} />}
+            {notice && <Alert type="success" message={notice} />}
+
+            {activeTab === "overview" && (
+              <OverviewPanel
+                stats={stats}
+                vehicles={vehicles}
+                messages={messages}
+                requests={requests}
+                openCreateEditor={openCreateEditor}
+                setActiveTab={setActiveTab}
+              />
+            )}
+
+            {activeTab === "inventory" && (
+              <InventoryPanel
+                vehicles={filteredVehicles}
+                inventorySearch={inventorySearch}
+                setInventorySearch={setInventorySearch}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                openCreateEditor={openCreateEditor}
+                openEditEditor={openEditEditor}
+                handleDeleteVehicle={handleDeleteVehicle}
+              />
+            )}
+
+            {activeTab === "messages" && <MessagesPanel messages={messages} />}
+
+            {activeTab === "requests" && <RequestsPanel requests={requests} />}
+          </div>
+        </main>
+      </div>
+
+      {editorOpen && (
+        <VehicleEditor
+          vehicleForm={vehicleForm}
+          handleVehicleChange={handleVehicleChange}
+          handleSaveVehicle={handleSaveVehicle}
+          closeEditor={closeEditor}
+          editingVehicleId={editingVehicleId}
+          uploading={uploading}
+          handleImageUpload={handleImageUpload}
+          removeImage={removeImage}
+          saving={saving}
+        />
+      )}
+    </section>
   );
 }
 
-function TabButton({ active, onClick, children }) {
+function LoginFeature({ icon: Icon, label }) {
+  return (
+    <div className="rounded-3xl border border-white/10 bg-white/10 p-5">
+      <Icon className="mb-4 text-yellow-300" size={26} />
+      <p className="font-black">{label}</p>
+    </div>
+  );
+}
+
+function Alert({ type, message }) {
+  const isError = type === "error";
+
+  return (
+    <div
+      className={`mb-5 flex items-start gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold ${
+        isError
+          ? "border-red-200 bg-red-50 text-red-700"
+          : "border-green-200 bg-green-50 text-green-700"
+      }`}
+    >
+      {isError ? <X size={18} /> : <CheckCircle2 size={18} />}
+      <p>{message}</p>
+    </div>
+  );
+}
+
+function SidebarButton({ icon: Icon, label, active, count, onClick }) {
   return (
     <button
-      type="button"
       onClick={onClick}
-      className={
+      className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left font-bold transition ${
         active
-          ? "rounded-full bg-yellow-400 px-5 py-3 font-bold text-black"
-          : "rounded-full border border-white/20 px-5 py-3 font-bold text-white hover:bg-white hover:text-black"
-      }
+          ? "bg-yellow-400 text-black shadow-lg shadow-yellow-500/20"
+          : "text-white/70 hover:bg-white/10 hover:text-white"
+      }`}
     >
-      {children}
+      <span className="flex items-center gap-3">
+        <Icon size={20} />
+        {label}
+      </span>
+
+      {typeof count === "number" && (
+        <span
+          className={`rounded-full px-2 py-1 text-xs ${
+            active ? "bg-black text-white" : "bg-white/10 text-white/70"
+          }`}
+        >
+          {count}
+        </span>
+      )}
     </button>
   );
 }
 
-function ComboField({ name, value, onChange, options, placeholder }) {
-  const listId = `${name}-options`;
+function OverviewPanel({
+  stats,
+  vehicles,
+  messages,
+  requests,
+  openCreateEditor,
+  setActiveTab,
+}) {
+  const latestVehicles = vehicles.slice(0, 4);
+  const latestMessages = messages.slice(0, 3);
+  const latestRequests = requests.slice(0, 3);
 
   return (
-    <div>
+    <div className="space-y-6">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          icon={Car}
+          label="Total Vehicles"
+          value={stats.total}
+          detail="All listed inventory"
+        />
+        <StatCard
+          icon={CheckCircle2}
+          label="Available"
+          value={stats.available}
+          detail="Ready for buyers"
+        />
+        <StatCard
+          icon={Star}
+          label="Featured"
+          value={stats.featured}
+          detail="Homepage highlights"
+        />
+        <StatCard
+          icon={MessageSquare}
+          label="New Leads"
+          value={stats.messages + stats.requests}
+          detail="Messages and requests"
+        />
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
+        <div className="rounded-[2rem] border border-black/10 bg-black p-6 text-white shadow-xl">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
+            <div>
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-yellow-400/10 px-4 py-2 text-sm font-bold text-yellow-300">
+                <Sparkles size={18} />
+                Luxury Export Operations
+              </div>
+
+              <h2 className="text-3xl font-black tracking-tight">
+                Manage listings with a cleaner, faster workflow.
+              </h2>
+
+              <p className="mt-3 max-w-2xl text-white/65">
+                Add premium cars, mark featured inventory, track buyer interest,
+                and handle custom sourcing requests from one executive-style
+                panel.
+              </p>
+            </div>
+
+            <button
+              onClick={openCreateEditor}
+              className="flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-yellow-400 px-5 py-4 font-black text-black transition hover:bg-yellow-300"
+            >
+              <Plus size={20} />
+              Add Vehicle
+            </button>
+          </div>
+
+          <div className="mt-8 grid gap-3 sm:grid-cols-4">
+            <MiniMetric label="Available Soon" value={stats.availableSoon} />
+            <MiniMetric label="Reserved" value={stats.reserved} />
+            <MiniMetric label="Sold" value={stats.sold} />
+            <MiniMetric label="Requests" value={stats.requests} />
+          </div>
+        </div>
+
+        <div className="rounded-[2rem] border border-black/10 bg-white p-6 shadow-sm">
+          <h3 className="mb-4 text-xl font-black">Quick Actions</h3>
+
+          <div className="space-y-3">
+            <QuickAction
+              icon={Car}
+              label="View Inventory"
+              onClick={() => setActiveTab("inventory")}
+            />
+            <QuickAction
+              icon={Inbox}
+              label="Read Messages"
+              onClick={() => setActiveTab("messages")}
+            />
+            <QuickAction
+              icon={Send}
+              label="View Requests"
+              onClick={() => setActiveTab("requests")}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-3">
+        <RecentCard title="Recent Inventory" icon={Car}>
+          {latestVehicles.length ? (
+            latestVehicles.map((vehicle) => (
+              <div
+                key={vehicle.id}
+                className="flex items-center gap-3 rounded-2xl bg-black/[0.03] p-3"
+              >
+                <VehicleThumb vehicle={vehicle} />
+                <div className="min-w-0">
+                  <p className="truncate font-black">
+                    {vehicle.year} {vehicle.make} {vehicle.model}
+                  </p>
+                  <p className="text-sm text-black/55">
+                    {formatCurrency(vehicle.price)} · {vehicle.status}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <EmptyState text="No vehicles yet." />
+          )}
+        </RecentCard>
+
+        <RecentCard title="Latest Messages" icon={Inbox}>
+          {latestMessages.length ? (
+            latestMessages.map((message) => (
+              <LeadPreview
+                key={message.id}
+                title={message.full_name}
+                subtitle={message.vehicle_interested_in}
+                meta={message.phone}
+              />
+            ))
+          ) : (
+            <EmptyState text="No interest messages yet." />
+          )}
+        </RecentCard>
+
+        <RecentCard title="Latest Requests" icon={Send}>
+          {latestRequests.length ? (
+            latestRequests.map((request) => (
+              <LeadPreview
+                key={request.id}
+                title={request.full_name}
+                subtitle={`${request.preferred_make || "Any make"} ${request.preferred_model || ""}`}
+                meta={request.budget || request.phone}
+              />
+            ))
+          ) : (
+            <EmptyState text="No custom requests yet." />
+          )}
+        </RecentCard>
+      </div>
+    </div>
+  );
+}
+
+function StatCard({ icon: Icon, label, value, detail }) {
+  return (
+    <div className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-sm">
+      <div className="mb-5 flex items-center justify-between">
+        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-black text-yellow-300">
+          <Icon size={22} />
+        </div>
+        <ChevronDown className="text-black/30" size={18} />
+      </div>
+
+      <p className="text-4xl font-black">{value}</p>
+      <p className="mt-1 font-black">{label}</p>
+      <p className="mt-2 text-sm text-black/50">{detail}</p>
+    </div>
+  );
+}
+
+function MiniMetric({ label, value }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/10 p-4">
+      <p className="text-2xl font-black text-yellow-300">{value}</p>
+      <p className="text-sm text-white/60">{label}</p>
+    </div>
+  );
+}
+
+function QuickAction({ icon: Icon, label, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="flex w-full items-center justify-between rounded-2xl border border-black/10 bg-[#f7f3ed] p-4 font-black transition hover:bg-black hover:text-white"
+    >
+      <span className="flex items-center gap-3">
+        <Icon size={20} />
+        {label}
+      </span>
+      <Eye size={18} />
+    </button>
+  );
+}
+
+function RecentCard({ title, icon: Icon, children }) {
+  return (
+    <div className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <h3 className="text-lg font-black">{title}</h3>
+        <Icon className="text-black/40" size={20} />
+      </div>
+
+      <div className="space-y-3">{children}</div>
+    </div>
+  );
+}
+
+function InventoryPanel({
+  vehicles,
+  inventorySearch,
+  setInventorySearch,
+  statusFilter,
+  setStatusFilter,
+  openCreateEditor,
+  openEditEditor,
+  handleDeleteVehicle,
+}) {
+  return (
+    <div className="space-y-5">
+      <div className="rounded-[2rem] border border-black/10 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="relative flex-1">
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-black/35"
+              size={20}
+            />
+            <input
+              value={inventorySearch}
+              onChange={(event) => setInventorySearch(event.target.value)}
+              placeholder="Search by make, model, destination, color..."
+              className="w-full rounded-2xl border border-black/10 bg-[#f7f3ed] py-4 pl-12 pr-4 font-semibold outline-none transition focus:border-black"
+            />
+          </div>
+
+          <select
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+            className="rounded-2xl border border-black/10 bg-[#f7f3ed] px-4 py-4 font-bold outline-none"
+          >
+            <option value="All">All Statuses</option>
+            {statuses.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+
+          <button
+            onClick={openCreateEditor}
+            className="flex items-center justify-center gap-2 rounded-2xl bg-black px-5 py-4 font-black text-white transition hover:bg-yellow-400 hover:text-black"
+          >
+            <Plus size={18} />
+            Add Vehicle
+          </button>
+        </div>
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-2 2xl:grid-cols-3">
+        {vehicles.length ? (
+          vehicles.map((vehicle) => (
+            <InventoryCard
+              key={vehicle.id}
+              vehicle={vehicle}
+              onEdit={() => openEditEditor(vehicle)}
+              onDelete={() => handleDeleteVehicle(vehicle)}
+            />
+          ))
+        ) : (
+          <div className="xl:col-span-2 2xl:col-span-3">
+            <EmptyLarge
+              icon={Car}
+              title="No vehicles found"
+              text="Try another search or add a new vehicle listing."
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InventoryCard({ vehicle, onEdit, onDelete }) {
+  const image = getVehicleImages(vehicle)[0];
+
+  return (
+    <article className="overflow-hidden rounded-[2rem] border border-black/10 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+      <div className="relative h-56 overflow-hidden bg-black">
+        {image ? (
+          <img
+            src={resolveImageUrl(image)}
+            alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full items-center justify-center text-white/50">
+            <Camera size={42} />
+          </div>
+        )}
+
+        <div className="absolute left-4 top-4 flex flex-wrap gap-2">
+          {vehicle.badge && <Pill label={vehicle.badge} />}
+          {vehicle.featured && <Pill label="Featured" dark />}
+        </div>
+
+        <StatusBadge status={vehicle.status} />
+      </div>
+
+      <div className="p-5">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-black/40">
+              {vehicle.body}
+            </p>
+            <h3 className="mt-1 text-2xl font-black leading-tight">
+              {vehicle.year} {vehicle.make} {vehicle.model}
+            </h3>
+          </div>
+
+          <p className="shrink-0 rounded-2xl bg-[#f7f3ed] px-3 py-2 text-sm font-black">
+            #{vehicle.id}
+          </p>
+        </div>
+
+        <p className="mb-4 text-3xl font-black">
+          {formatCurrency(vehicle.price)}
+        </p>
+
+        <div className="grid grid-cols-2 gap-3">
+          <Spec
+            icon={Gauge}
+            label="Mileage"
+            value={`${formatNumber(vehicle.mileage)} mi`}
+          />
+          <Spec
+            icon={Globe2}
+            label="Destination"
+            value={vehicle.destination || "N/A"}
+          />
+          <Spec
+            icon={Sparkles}
+            label="Exterior"
+            value={vehicle.exterior || "N/A"}
+          />
+          <Spec
+            icon={ShieldCheck}
+            label="Transmission"
+            value={vehicle.transmission || "N/A"}
+          />
+        </div>
+
+        <div className="mt-5 flex gap-3">
+          <button
+            onClick={onEdit}
+            className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-black px-4 py-3 font-black text-white transition hover:bg-yellow-400 hover:text-black"
+          >
+            <Edit3 size={18} />
+            Edit
+          </button>
+
+          <button
+            onClick={onDelete}
+            className="flex items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-4 py-3 font-black text-red-600 transition hover:bg-red-600 hover:text-white"
+          >
+            <Trash2 size={18} />
+          </button>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function VehicleEditor({
+  vehicleForm,
+  handleVehicleChange,
+  handleSaveVehicle,
+  closeEditor,
+  editingVehicleId,
+  uploading,
+  handleImageUpload,
+  removeImage,
+  saving,
+}) {
+  const images = vehicleForm.image
+    ? vehicleForm.image
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+    : [];
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/70 px-4 py-6 backdrop-blur-sm">
+      <div className="mx-auto max-w-6xl overflow-hidden rounded-[2rem] bg-[#f5f1ea] shadow-2xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-black/10 bg-[#f5f1ea]/95 p-5 backdrop-blur-xl">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.2em] text-black/50">
+              Vehicle Editor
+            </p>
+            <h2 className="text-2xl font-black">
+              {editingVehicleId ? "Edit Vehicle Listing" : "Add New Vehicle"}
+            </h2>
+          </div>
+
+          <button
+            onClick={closeEditor}
+            className="rounded-2xl bg-black p-3 text-white transition hover:bg-red-600"
+          >
+            <X size={22} />
+          </button>
+        </div>
+
+        <form
+          onSubmit={handleSaveVehicle}
+          className="grid gap-6 p-5 lg:grid-cols-[0.85fr_1.15fr]"
+        >
+          <div className="space-y-5">
+            <div className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-black">Vehicle Images</h3>
+                <ImagePlus className="text-black/40" size={22} />
+              </div>
+
+              <label className="flex cursor-pointer flex-col items-center justify-center rounded-[1.5rem] border-2 border-dashed border-black/20 bg-[#f7f3ed] px-5 py-8 text-center transition hover:border-black hover:bg-white">
+                {uploading ? (
+                  <Loader2 className="mb-3 animate-spin text-black" size={34} />
+                ) : (
+                  <UploadCloud className="mb-3 text-black" size={34} />
+                )}
+
+                <span className="font-black">
+                  {uploading ? "Uploading images..." : "Upload vehicle images"}
+                </span>
+                <span className="mt-1 text-sm text-black/50">
+                  JPG, PNG, or WEBP. First image becomes the main display image.
+                </span>
+
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  multiple
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
+              </label>
+
+              {images.length > 0 && (
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  {images.map((image, index) => (
+                    <div
+                      key={image}
+                      className="group relative overflow-hidden rounded-2xl border border-black/10 bg-black"
+                    >
+                      <img
+                        src={resolveImageUrl(image)}
+                        alt={`Vehicle ${index + 1}`}
+                        className="h-32 w-full object-cover"
+                      />
+
+                      {index === 0 && (
+                        <span className="absolute left-2 top-2 rounded-full bg-yellow-400 px-2 py-1 text-xs font-black text-black">
+                          Main
+                        </span>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => removeImage(image)}
+                        className="absolute right-2 top-2 rounded-full bg-red-600 p-2 text-white opacity-0 transition group-hover:opacity-100"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <TextAreaField
+                label="Image URLs"
+                name="image"
+                value={vehicleForm.image}
+                onChange={handleVehicleChange}
+                placeholder="Image URLs will appear here after upload. You can also paste external image URLs separated by commas."
+              />
+            </div>
+
+            <div className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-sm">
+              <h3 className="mb-4 text-lg font-black">Listing Settings</h3>
+
+              <div className="space-y-4">
+                <ComboField
+                  label="Status"
+                  name="status"
+                  value={vehicleForm.status}
+                  onChange={handleVehicleChange}
+                  options={statuses}
+                  required
+                />
+
+                <ComboField
+                  label="Badge"
+                  name="badge"
+                  value={vehicleForm.badge}
+                  onChange={handleVehicleChange}
+                  options={badges}
+                  placeholder="New Arrival, Hot Deal, Export Ready..."
+                />
+
+                <label className="flex items-center justify-between rounded-2xl border border-black/10 bg-[#f7f3ed] p-4">
+                  <span>
+                    <span className="block font-black">
+                      Feature on Homepage
+                    </span>
+                    <span className="text-sm text-black/50">
+                      Highlight this vehicle in featured sections.
+                    </span>
+                  </span>
+
+                  <input
+                    type="checkbox"
+                    name="featured"
+                    checked={vehicleForm.featured}
+                    onChange={handleVehicleChange}
+                    className="h-5 w-5 accent-black"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            <div className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-sm">
+              <h3 className="mb-4 text-lg font-black">Vehicle Details</h3>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <ComboField
+                  label="Year"
+                  name="year"
+                  value={vehicleForm.year}
+                  onChange={handleVehicleChange}
+                  options={years}
+                  required
+                />
+
+                <ComboField
+                  label="Make"
+                  name="make"
+                  value={vehicleForm.make}
+                  onChange={handleVehicleChange}
+                  options={makes}
+                  required
+                />
+
+                <InputField
+                  label="Model"
+                  name="model"
+                  value={vehicleForm.model}
+                  onChange={handleVehicleChange}
+                  placeholder="e.g. GLS 580"
+                  required
+                />
+
+                <ComboField
+                  label="Body Type"
+                  name="body"
+                  value={vehicleForm.body}
+                  onChange={handleVehicleChange}
+                  options={bodyTypes}
+                  required
+                />
+
+                <InputField
+                  label="Price"
+                  name="price"
+                  type="number"
+                  value={vehicleForm.price}
+                  onChange={handleVehicleChange}
+                  placeholder="95000"
+                  required
+                />
+
+                <InputField
+                  label="Mileage"
+                  name="mileage"
+                  type="number"
+                  value={vehicleForm.mileage}
+                  onChange={handleVehicleChange}
+                  placeholder="12000"
+                  required
+                />
+
+                <ComboField
+                  label="Destination"
+                  name="destination"
+                  value={vehicleForm.destination}
+                  onChange={handleVehicleChange}
+                  options={destinations}
+                  required
+                />
+
+                <ComboField
+                  label="Exterior Color"
+                  name="exterior"
+                  value={vehicleForm.exterior}
+                  onChange={handleVehicleChange}
+                  options={colors}
+                  required
+                />
+
+                <ComboField
+                  label="Interior"
+                  name="interior"
+                  value={vehicleForm.interior}
+                  onChange={handleVehicleChange}
+                  options={interiors}
+                />
+
+                <ComboField
+                  label="Transmission"
+                  name="transmission"
+                  value={vehicleForm.transmission}
+                  onChange={handleVehicleChange}
+                  options={transmissions}
+                />
+
+                <ComboField
+                  label="Engine"
+                  name="engine"
+                  value={vehicleForm.engine}
+                  onChange={handleVehicleChange}
+                  options={engines}
+                />
+
+                <InputField
+                  label="Features"
+                  name="features"
+                  value={vehicleForm.features}
+                  onChange={handleVehicleChange}
+                  placeholder="Panoramic roof, Massage seats, CarPlay"
+                />
+              </div>
+            </div>
+
+            <div className="sticky bottom-5 rounded-[2rem] border border-black/10 bg-white p-4 shadow-2xl">
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={closeEditor}
+                  className="flex-1 rounded-2xl border border-black/10 px-5 py-4 font-black transition hover:bg-black hover:text-white"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-yellow-400 px-5 py-4 font-black text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {saving ? (
+                    <Loader2 className="animate-spin" size={20} />
+                  ) : (
+                    <CheckCircle2 size={20} />
+                  )}
+                  {editingVehicleId ? "Save Changes" : "Publish Vehicle"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function MessagesPanel({ messages }) {
+  if (!messages.length) {
+    return (
+      <EmptyLarge
+        icon={Inbox}
+        title="No interest messages yet"
+        text="Customer messages from vehicle pages will appear here."
+      />
+    );
+  }
+
+  return (
+    <div className="grid gap-5 xl:grid-cols-2">
+      {messages.map((message) => (
+        <LeadCard
+          key={message.id}
+          icon={MessageSquare}
+          title={message.full_name}
+          subtitle={message.vehicle_interested_in}
+          phone={message.phone}
+          email={message.email}
+          destination={message.destination_country}
+          message={message.message}
+          createdAt={message.created_at}
+        />
+      ))}
+    </div>
+  );
+}
+
+function RequestsPanel({ requests }) {
+  if (!requests.length) {
+    return (
+      <EmptyLarge
+        icon={Send}
+        title="No custom vehicle requests yet"
+        text="Customer sourcing requests will appear here."
+      />
+    );
+  }
+
+  return (
+    <div className="grid gap-5 xl:grid-cols-2">
+      {requests.map((request) => (
+        <LeadCard
+          key={request.id}
+          icon={Send}
+          title={request.full_name}
+          subtitle={`${request.preferred_make || "Any make"} ${request.preferred_model || ""}`}
+          phone={sanitizePhone(request.phone || "")}
+          email={request.email}
+          destination={request.destination_country}
+          budget={request.budget}
+          message={request.message}
+          createdAt={request.created_at}
+          extra={[
+            ["Year Range", request.year_range],
+            ["Preferred Make", request.preferred_make],
+            ["Preferred Model", request.preferred_model],
+          ]}
+        />
+      ))}
+    </div>
+  );
+}
+
+function LeadCard({
+  icon: Icon,
+  title,
+  subtitle,
+  phone,
+  email,
+  destination,
+  budget,
+  message,
+  createdAt,
+  extra = [],
+}) {
+  return (
+    <article className="rounded-[2rem] border border-black/10 bg-white p-5 shadow-sm">
+      <div className="mb-5 flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-black text-yellow-300">
+            <Icon size={22} />
+          </div>
+
+          <div>
+            <h3 className="text-xl font-black">{title}</h3>
+            <p className="text-sm font-semibold text-black/55">
+              {subtitle || "No vehicle specified"}
+            </p>
+          </div>
+        </div>
+
+        <span className="rounded-full bg-[#f7f3ed] px-3 py-1 text-xs font-black text-black/60">
+          {createdAt ? new Date(createdAt).toLocaleDateString() : "New"}
+        </span>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <LeadInfo icon={UserRound} label="Phone" value={phone} />
+        <LeadInfo icon={Mail} label="Email" value={email || "N/A"} />
+        <LeadInfo
+          icon={Globe2}
+          label="Destination"
+          value={destination || "N/A"}
+        />
+        {budget && <LeadInfo icon={Sparkles} label="Budget" value={budget} />}
+
+        {extra
+          .filter((item) => item[1])
+          .map(([label, value]) => (
+            <LeadInfo key={label} icon={Car} label={label} value={value} />
+          ))}
+      </div>
+
+      {message && (
+        <div className="mt-4 rounded-2xl bg-[#f7f3ed] p-4">
+          <p className="text-sm font-black text-black/50">Message</p>
+          <p className="mt-1 leading-7 text-black/75">{message}</p>
+        </div>
+      )}
+    </article>
+  );
+}
+
+function LeadInfo({ icon: Icon, label, value }) {
+  return (
+    <div className="rounded-2xl border border-black/10 bg-[#f7f3ed] p-3">
+      <div className="mb-1 flex items-center gap-2 text-xs font-black uppercase tracking-[0.16em] text-black/40">
+        <Icon size={14} />
+        {label}
+      </div>
+      <p className="font-black">{value || "N/A"}</p>
+    </div>
+  );
+}
+
+function InputField({
+  label,
+  icon: Icon,
+  name,
+  type = "text",
+  value,
+  onChange,
+  placeholder,
+  required,
+}) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-black text-black/70">
+        {label}
+      </span>
+
+      <div className="relative">
+        {Icon && (
+          <Icon
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-black/35"
+            size={18}
+          />
+        )}
+
+        <input
+          name={name}
+          type={type}
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          required={required}
+          className={`w-full rounded-2xl border border-black/10 bg-[#f7f3ed] px-4 py-4 font-semibold outline-none transition focus:border-black ${
+            Icon ? "pl-11" : ""
+          }`}
+        />
+      </div>
+    </label>
+  );
+}
+
+function ComboField({
+  label,
+  name,
+  value,
+  onChange,
+  options,
+  placeholder,
+  required,
+}) {
+  const listId = `${name}-list`;
+
+  return (
+    <label className="block">
+      <span className="mb-2 block text-sm font-black text-black/70">
+        {label}
+      </span>
+
       <input
-        className="input"
+        list={listId}
         name={name}
         value={value}
         onChange={onChange}
-        list={listId}
-        placeholder={placeholder}
+        placeholder={placeholder || `Select or type ${label.toLowerCase()}`}
+        required={required}
+        className="w-full rounded-2xl border border-black/10 bg-[#f7f3ed] px-4 py-4 font-semibold outline-none transition focus:border-black"
       />
 
       <datalist id={listId}>
@@ -778,470 +1747,134 @@ function ComboField({ name, value, onChange, options, placeholder }) {
           <option key={option} value={option} />
         ))}
       </datalist>
+    </label>
+  );
+}
+
+function TextAreaField({ label, name, value, onChange, placeholder }) {
+  return (
+    <label className="mt-4 block">
+      <span className="mb-2 block text-sm font-black text-black/70">
+        {label}
+      </span>
+
+      <textarea
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        rows={4}
+        className="w-full resize-none rounded-2xl border border-black/10 bg-[#f7f3ed] px-4 py-4 font-semibold outline-none transition focus:border-black"
+      />
+    </label>
+  );
+}
+
+function VehicleThumb({ vehicle }) {
+  const image = getVehicleImages(vehicle)[0];
+
+  return (
+    <div className="h-14 w-16 shrink-0 overflow-hidden rounded-2xl bg-black">
+      {image ? (
+        <img
+          src={resolveImageUrl(image)}
+          alt={`${vehicle.make} ${vehicle.model}`}
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <div className="flex h-full items-center justify-center text-white/40">
+          <Camera size={20} />
+        </div>
+      )}
     </div>
   );
 }
 
-function InventoryAdmin({
-  vehicles,
-  vehicleForm,
-  modelOptions,
-  editingVehicleId,
-  saving,
-  uploadingImages,
-  onChange,
-  onImageUpload,
-  onRemoveImage,
-  onSubmit,
-  onReset,
-  onEdit,
-  onDelete,
-}) {
+function LeadPreview({ title, subtitle, meta }) {
   return (
-    <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-      <form
-        onSubmit={onSubmit}
-        className="rounded-[2rem] border border-white/10 bg-white/5 p-6"
-      >
-        <h2 className="text-2xl font-black">
-          {editingVehicleId ? "Edit Vehicle" : "Add New Vehicle"}
-        </h2>
-
-        <p className="mt-2 text-gray-400">
-          Use dropdown suggestions or type your own values. Upload one or more
-          images from your device.
-        </p>
-
-        <div className="mt-6 grid gap-4 md:grid-cols-2">
-          <ComboField
-            name="year"
-            value={vehicleForm.year}
-            onChange={onChange}
-            options={years}
-            placeholder="Select or type Year"
-          />
-
-          <ComboField
-            name="make"
-            value={vehicleForm.make}
-            onChange={onChange}
-            options={vehicleMakes}
-            placeholder="Select or type Make"
-          />
-
-          <ComboField
-            name="model"
-            value={vehicleForm.model}
-            onChange={onChange}
-            options={modelOptions}
-            placeholder={
-              vehicleForm.make
-                ? "Select or type Model"
-                : "Select make first or type model"
-            }
-          />
-
-          <ComboField
-            name="body"
-            value={vehicleForm.body}
-            onChange={onChange}
-            options={bodyTypes}
-            placeholder="Select or type Body Type"
-          />
-
-          <input
-            className="input"
-            name="price"
-            placeholder="Price, e.g. 115000"
-            value={vehicleForm.price}
-            onChange={onChange}
-          />
-
-          <input
-            className="input"
-            name="mileage"
-            placeholder="Mileage, e.g. 14500"
-            value={vehicleForm.mileage}
-            onChange={onChange}
-          />
-
-          <ComboField
-            name="destination"
-            value={vehicleForm.destination}
-            onChange={onChange}
-            options={destinations}
-            placeholder="Select or type Destination"
-          />
-
-          <ComboField
-            name="exterior"
-            value={vehicleForm.exterior}
-            onChange={onChange}
-            options={colors}
-            placeholder="Select or type Exterior Color"
-          />
-
-          <ComboField
-            name="interior"
-            value={vehicleForm.interior}
-            onChange={onChange}
-            options={interiors}
-            placeholder="Select or type Interior Color"
-          />
-
-          <ComboField
-            name="engine"
-            value={vehicleForm.engine}
-            onChange={onChange}
-            options={engines}
-            placeholder="Select or type Engine"
-          />
-
-          <ComboField
-            name="transmission"
-            value={vehicleForm.transmission}
-            onChange={onChange}
-            options={transmissions}
-            placeholder="Select or type Transmission"
-          />
-
-          <ComboField
-            name="status"
-            value={vehicleForm.status}
-            onChange={onChange}
-            options={statuses}
-            placeholder="Select or type Status"
-          />
-
-          <ComboField
-            name="badge"
-            value={vehicleForm.badge}
-            onChange={onChange}
-            options={badges}
-            placeholder="Select or type Badge"
-          />
-
-          <label className="flex items-center gap-3 rounded-2xl border border-white/10 bg-black p-4 font-bold text-gray-200">
-            <input
-              type="checkbox"
-              name="featured"
-              checked={vehicleForm.featured}
-              onChange={onChange}
-              className="h-5 w-5 accent-yellow-400"
-            />
-            Feature this vehicle on homepage
-          </label>
-
-          <div className="md:col-span-2">
-            <label className="mb-2 block text-sm font-bold text-gray-300">
-              Upload Vehicle Images
-            </label>
-
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={onImageUpload}
-              className="input"
-            />
-
-            <p className="mt-2 text-sm text-gray-500">
-              Upload multiple images. The first image will be the main display
-              image.
-            </p>
-
-            {uploadingImages && (
-              <p className="mt-2 text-sm font-bold text-yellow-400">
-                Uploading images...
-              </p>
-            )}
-          </div>
-
-          <textarea
-            className="input min-h-28 md:col-span-2"
-            name="image"
-            placeholder="Image paths or URLs will appear here. You can also paste URLs separated by commas."
-            value={vehicleForm.image}
-            onChange={onChange}
-          />
-
-          <ImagePreviewManager
-            imageText={vehicleForm.image}
-            onRemoveImage={onRemoveImage}
-          />
-
-          <textarea
-            className="input min-h-28 md:col-span-2"
-            name="features"
-            placeholder="Features separated by commas, e.g. Leather, Sunroof, Premium Audio"
-            value={vehicleForm.features}
-            onChange={onChange}
-          />
-        </div>
-
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-full bg-yellow-400 px-6 py-4 font-bold text-black hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {saving
-              ? "Saving..."
-              : editingVehicleId
-                ? "Update Vehicle"
-                : "Add Vehicle"}
-          </button>
-
-          <button
-            type="button"
-            onClick={onReset}
-            className="rounded-full border border-white/20 px-6 py-4 font-bold hover:bg-white hover:text-black"
-          >
-            Clear Form
-          </button>
-        </div>
-      </form>
-
-      <div>
-        <h2 className="mb-5 text-2xl font-black">Current Inventory</h2>
-
-        <div className="grid gap-4">
-          {vehicles.map((vehicle) => (
-            <div
-              key={vehicle.id}
-              className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5"
-            >
-              <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                <div>
-                  <div className="flex flex-wrap gap-2">
-                    <p className="text-sm font-bold uppercase tracking-widest text-yellow-400">
-                      {vehicle.badge || "Inventory"}
-                    </p>
-
-                    <span className="rounded-full border border-white/20 px-3 py-1 text-xs font-bold text-gray-300">
-                      {vehicle.status || "Available"}
-                    </span>
-
-                    {vehicle.featured && (
-                      <span className="rounded-full bg-yellow-400 px-3 py-1 text-xs font-bold text-black">
-                        Featured
-                      </span>
-                    )}
-                  </div>
-
-                  <h3 className="mt-1 text-xl font-black">
-                    {vehicle.year} {vehicle.make} {vehicle.model}
-                  </h3>
-
-                  <p className="mt-1 text-gray-400">
-                    ${Number(vehicle.price).toLocaleString()} ·{" "}
-                    {Number(vehicle.mileage).toLocaleString()} mi ·{" "}
-                    {vehicle.destination} · {vehicle.exterior}
-                  </p>
-                </div>
-
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={() => onEdit(vehicle)}
-                    className="rounded-full border border-white/20 px-5 py-3 font-bold hover:bg-white hover:text-black"
-                  >
-                    Edit
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => onDelete(vehicle.id)}
-                    className="rounded-full bg-red-500 px-5 py-3 font-bold text-white hover:bg-red-400"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-
-          {vehicles.length === 0 && (
-            <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-8 text-center text-gray-400">
-              No vehicles found.
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ImagePreviewManager({ imageText, onRemoveImage }) {
-  const images = getImageList(imageText);
-
-  if (images.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="md:col-span-2">
-      <p className="mb-3 text-sm font-bold text-gray-300">
-        Uploaded / Added Images
+    <div className="rounded-2xl bg-black/[0.03] p-4">
+      <p className="font-black">{title || "Unknown customer"}</p>
+      <p className="mt-1 text-sm text-black/55">
+        {subtitle || "No detail provided"}
       </p>
-
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {images.map((image, index) => (
-          <div
-            key={`${image}-${index}`}
-            className="overflow-hidden rounded-2xl border border-white/10 bg-black"
-          >
-            <img
-              src={resolveImageUrl(image)}
-              alt={`Vehicle preview ${index + 1}`}
-              className="h-36 w-full object-cover"
-            />
-
-            <div className="p-3">
-              <p className="truncate text-xs text-gray-500">{image}</p>
-
-              {index === 0 && (
-                <p className="mt-1 text-xs font-bold text-yellow-400">
-                  Main display image
-                </p>
-              )}
-
-              <button
-                type="button"
-                onClick={() => onRemoveImage(image)}
-                className="mt-3 w-full rounded-full bg-red-500 px-4 py-2 text-sm font-bold text-white hover:bg-red-400"
-              >
-                Remove Image
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <p className="mt-2 text-xs font-black uppercase tracking-[0.16em] text-black/35">
+        {meta || "No contact"}
+      </p>
     </div>
   );
 }
 
-function InterestMessages({ messages }) {
+function Spec({ icon: Icon, label, value }) {
   return (
-    <section>
-      <h2 className="mb-5 text-2xl font-black">Interested Customers</h2>
-
-      <div className="grid gap-4">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5"
-          >
-            <div className="grid gap-4 md:grid-cols-2">
-              <AdminInfo label="Name" value={message.full_name} />
-              <AdminInfo label="Phone / WhatsApp" value={message.phone} />
-              <AdminInfo
-                label="Email"
-                value={message.email || "Not provided"}
-              />
-              <AdminInfo
-                label="Destination"
-                value={message.destination_country || "Not provided"}
-              />
-              <AdminInfo
-                label="Vehicle"
-                value={message.vehicle_interested_in}
-              />
-              <AdminInfo label="Date" value={message.created_at} />
-            </div>
-
-            <div className="mt-4 rounded-2xl bg-black p-4">
-              <p className="text-xs uppercase tracking-widest text-gray-500">
-                Message
-              </p>
-
-              <p className="mt-2 text-gray-300">
-                {message.message || "No message provided."}
-              </p>
-            </div>
-          </div>
-        ))}
-
-        {messages.length === 0 && (
-          <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-8 text-center text-gray-400">
-            No interest messages yet.
-          </div>
-        )}
+    <div className="rounded-2xl bg-[#f7f3ed] p-3">
+      <div className="mb-1 flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-black/40">
+        <Icon size={14} />
+        {label}
       </div>
-    </section>
-  );
-}
-
-function VehicleRequests({ requests }) {
-  return (
-    <section>
-      <h2 className="mb-5 text-2xl font-black">Custom Vehicle Requests</h2>
-
-      <div className="grid gap-4">
-        {requests.map((request) => (
-          <div
-            key={request.id}
-            className="rounded-[1.5rem] border border-white/10 bg-white/5 p-5"
-          >
-            <div className="grid gap-4 md:grid-cols-2">
-              <AdminInfo label="Name" value={request.full_name} />
-              <AdminInfo label="Phone / WhatsApp" value={request.phone} />
-              <AdminInfo
-                label="Email"
-                value={request.email || "Not provided"}
-              />
-              <AdminInfo
-                label="Destination"
-                value={request.destination_country || "Not provided"}
-              />
-              <AdminInfo
-                label="Preferred Make"
-                value={request.preferred_make || "Not provided"}
-              />
-              <AdminInfo
-                label="Preferred Model"
-                value={request.preferred_model || "Not provided"}
-              />
-              <AdminInfo
-                label="Year Range"
-                value={request.year_range || "Not provided"}
-              />
-              <AdminInfo
-                label="Budget"
-                value={request.budget || "Not provided"}
-              />
-              <AdminInfo label="Date" value={request.created_at} />
-            </div>
-
-            <div className="mt-4 rounded-2xl bg-black p-4">
-              <p className="text-xs uppercase tracking-widest text-gray-500">
-                Request Details
-              </p>
-
-              <p className="mt-2 text-gray-300">
-                {request.message || "No additional message provided."}
-              </p>
-            </div>
-          </div>
-        ))}
-
-        {requests.length === 0 && (
-          <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-8 text-center text-gray-400">
-            No custom vehicle requests yet.
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function AdminInfo({ label, value }) {
-  return (
-    <div className="rounded-2xl bg-black p-4">
-      <p className="text-xs uppercase tracking-widest text-gray-500">{label}</p>
-      <p className="mt-1 font-semibold text-gray-200">{value}</p>
+      <p className="truncate font-black">{value}</p>
     </div>
   );
+}
+
+function Pill({ label, dark }) {
+  return (
+    <span
+      className={`rounded-full px-3 py-1 text-xs font-black ${
+        dark ? "bg-black text-yellow-300" : "bg-yellow-400 text-black"
+      }`}
+    >
+      {label}
+    </span>
+  );
+}
+
+function StatusBadge({ status }) {
+  const styles = {
+    Available: "bg-green-500 text-white",
+    "Available Soon": "bg-blue-500 text-white",
+    Reserved: "bg-orange-500 text-white",
+    Sold: "bg-red-600 text-white",
+  };
+
+  return (
+    <span
+      className={`absolute bottom-4 right-4 rounded-full px-3 py-1 text-xs font-black ${
+        styles[status] || "bg-black text-white"
+      }`}
+    >
+      {status || "Available"}
+    </span>
+  );
+}
+
+function EmptyState({ text }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-black/15 p-5 text-center text-sm font-semibold text-black/45">
+      {text}
+    </div>
+  );
+}
+
+function EmptyLarge({ icon: Icon, title, text }) {
+  return (
+    <div className="flex min-h-[420px] flex-col items-center justify-center rounded-[2rem] border border-dashed border-black/15 bg-white p-10 text-center">
+      <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-black text-yellow-300">
+        <Icon size={30} />
+      </div>
+
+      <h3 className="text-2xl font-black">{title}</h3>
+      <p className="mt-2 max-w-md text-black/55">{text}</p>
+    </div>
+  );
+}
+
+function getVehicleImages(vehicle) {
+  if (!vehicle?.image) return [];
+
+  return vehicle.image
+    .split(",")
+    .map((image) => image.trim())
+    .filter(Boolean);
 }
 
 export default AdminDashboard;
