@@ -576,7 +576,7 @@ function AdminDashboard() {
                 <div>
                   <div className="mb-10 inline-flex items-center gap-3 rounded-full border border-yellow-400/30 bg-yellow-400/10 px-4 py-2 text-sm text-yellow-200">
                     <Crown size={18} />
-                    234 Luxury Motors Admin
+                    234 Motors Admin
                   </div>
 
                   <h1 className="max-w-xl text-5xl font-black leading-tight tracking-tight">
@@ -613,7 +613,7 @@ function AdminDashboard() {
                   </h2>
 
                   <p className="mt-2 text-sm text-white/60">
-                    Sign in to manage 234 Luxury Motors.
+                    Sign in to manage 234 Motors.
                   </p>
                 </div>
 

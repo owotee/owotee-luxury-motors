@@ -180,7 +180,7 @@ function getStatusClass(status) {
 function getVehicleWhatsAppLink(vehicle) {
   const vehicleName = `${vehicle.year} ${vehicle.make} ${vehicle.model}`;
   const message = encodeURIComponent(
-    `Hello 234 Luxury Motors, I am interested in the ${vehicleName}.`,
+    `Hello 234 Motors, I am interested in the ${vehicleName}.`,
   );
 
   return `https://wa.me/14697512533?text=${message}`;
@@ -393,7 +393,7 @@ function Website() {
   };
 
   const whatsappMessage = encodeURIComponent(
-    "Hello 234 Luxury Motors, I am interested in a luxury vehicle shipped to Africa.",
+    "Hello 234 Motors, I am interested in a luxury vehicle shipped to Africa.",
   );
 
   return (
@@ -505,10 +505,10 @@ function BrandMark() {
 
       <div className="leading-tight">
         <p className="text-lg font-black tracking-tight">
-          234 <span className="text-yellow-400">Luxury Motors</span>
+          234 <span className="text-yellow-400">Motors</span>
         </p>
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">
-          Motors
+          Luxury Auto Exports
         </p>
       </div>
     </Link>
@@ -660,7 +660,7 @@ function HomePage({ vehicles = [], onView, onInterest }) {
           <div>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-sm font-bold uppercase tracking-[0.2em] text-yellow-400">
               <Crown size={16} />
-              234 Luxury Motors
+              234 Motors
             </div>
 
             <h1 className="max-w-4xl text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
@@ -912,7 +912,7 @@ function RequestVehiclePage({
             align="left"
             eyebrow="Request a Vehicle"
             title="Looking for a specific luxury vehicle?"
-            text="If you do not see the exact vehicle you want, send us the make, model, year range, budget, and destination. 234 Luxury Motors can help source premium vehicles from the U.S. market."
+            text="If you do not see the exact vehicle you want, send us the make, model, year range, budget, and destination. 234 Motors can help source premium vehicles from the U.S. market."
           />
 
           <div className="mt-8 grid gap-4">
@@ -1557,7 +1557,7 @@ function VehicleModal({ vehicle, onClose, onInterest }) {
 
             <p className="mt-6 leading-7 text-gray-300">
               This vehicle is listed for U.S. purchase and export support.
-              Message 234 Luxury Motors with your destination country for
+              Message 234 Motors with your destination country for
               availability, sourcing details, and next steps.
             </p>
 
