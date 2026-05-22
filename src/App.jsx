@@ -183,7 +183,7 @@ function getVehicleWhatsAppLink(vehicle) {
     `Hello Owotee Luxury Motors, I am interested in the ${vehicleName}.`,
   );
 
-  return `https://wa.me/14695550198?text=${message}`;
+  return `https://wa.me/14697512533?text=${message}`;
 }
 
 function App() {
@@ -1004,13 +1004,13 @@ function ContactPage({
           />
 
           <div className="mt-8 grid gap-4">
-            <IconText icon={Phone} title="WhatsApp: +1 469 555 0198" />
+            <IconText icon={Phone} title="WhatsApp: +1 469 751 2533" />
             <IconText icon={Mail} title="info@owoteeluxurymotors.com" />
             <IconText icon={Globe2} title="Focus Destination: Nigeria" />
           </div>
 
           <a
-            href={`https://wa.me/14695550198?text=${whatsappMessage}`}
+            href={`https://wa.me/14697512533?text=${whatsappMessage}`}
             target="_blank"
             rel="noreferrer"
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-green-500 px-8 py-4 font-bold text-black hover:bg-green-400"
@@ -1592,11 +1592,11 @@ function Footer() {
           </p>
           <p className="flex items-center gap-2">
             <Mail size={17} />
-            info@owoteeluxurymotors.com
+            owotee1@gmail.com
           </p>
           <p className="flex items-center gap-2">
             <Phone size={17} />
-            +1 469 555 0198
+            +1 469 751 2533
           </p>
         </div>
       </div>
