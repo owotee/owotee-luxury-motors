@@ -1,7 +1,7 @@
 {
   "name": "owotee-luxury-motors-backend",
   "version": "1.0.0",
-  "description": "Backend API for Owotee Luxury Motors",
+  "description": "Backend API for 234 Luxury Motors",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

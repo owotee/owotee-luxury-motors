@@ -43,7 +43,7 @@ app.use("/uploads", express.static(uploadsDir));
 app.get("/api/health", (req, res) => {
   res.json({
     success: true,
-    message: "Owotee Luxury Motors API is running.",
+    message: "234 Luxury Motors API is running.",
   });
 });
 

@@ -5,5 +5,5 @@ const { runDatabaseMigrations } = require("./config/database");
 runDatabaseMigrations();
 
 app.listen(env.port, () => {
-  console.log(`Owotee Luxury Motors backend running on port ${env.port}`);
+  console.log(`234 Luxury Motors backend running on port ${env.port}`);
 });

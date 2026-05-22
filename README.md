@@ -1,6 +1,6 @@
-# Owotee Luxury Motors
+# 234 Luxury Motors
 
-Owotee Luxury Motors is a full-stack luxury vehicle sourcing and export website. The platform allows clients to browse luxury vehicles sourced from the United States and message the business about vehicles they are interested in shipping to Africa, especially Nigeria.
+234 Luxury Motors is a full-stack luxury vehicle sourcing and export website. The platform allows clients to browse luxury vehicles sourced from the United States and message the business about vehicles they are interested in shipping to Africa, especially Nigeria.
 
 This project includes a public customer-facing website, a backend API, a SQLite database, and a secured admin dashboard for managing vehicle inventory and customer requests.
 
@@ -8,7 +8,7 @@ This project includes a public customer-facing website, a backend API, a SQLite 
 
 ## Project Overview
 
-Owotee Luxury Motors helps clients:
+234 Luxury Motors helps clients:
 
 - Browse available luxury vehicles
 - Search and filter inventory
@@ -28,7 +28,7 @@ The website does **not** include financing, trade-in, or test-drive features bec
 
 - Luxury homepage design
 - Mobile-responsive layout
-- Owotee Luxury Motors logo integration
+- 234 Luxury Motors logo integration
 - Searchable vehicle inventory
 - Filter vehicles by make, body type, destination, and price
 - Vehicle detail popup/modal
