@@ -688,7 +688,7 @@ function AdminDashboard() {
                 </div>
 
                 <div>
-                  <p className="text-lg font-black leading-tight">Owotee</p>
+                  <p className="text-lg font-black leading-tight">234 Motors</p>
                   <p className="text-xs uppercase tracking-[0.28em] text-yellow-300">
                     Admin
                   </p>

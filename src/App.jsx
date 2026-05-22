@@ -499,19 +499,29 @@ function Website() {
 function BrandMark() {
   return (
     <Link to="/" className="flex items-center gap-3">
-      <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-yellow-400/40 bg-yellow-400 text-black shadow-lg shadow-yellow-400/10">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-yellow-400/40 bg-yellow-400 text-black shadow-lg shadow-yellow-400/10">
         <Crown size={22} />
       </div>
 
       <div className="leading-tight">
         <p className="text-lg font-black tracking-tight">
-          Owotee <span className="text-yellow-400">Luxury</span>
+          234 <span className="text-yellow-400">Luxury Motors</span>
         </p>
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-gray-500">
           Motors
         </p>
       </div>
     </Link>
+  );
+}
+
+function PageContainer({ children, className = "" }) {
+  return (
+    <div
+      className={`mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 ${className}`}
+    >
+      {children}
+    </div>
   );
 }
 
@@ -527,7 +537,7 @@ function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-black/95 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 md:px-10 lg:px-20">
+      <PageContainer className="flex items-center justify-between py-2.5">
         <BrandMark />
 
         <nav className="hidden items-center gap-6 text-sm font-bold text-gray-300 lg:flex">
@@ -566,33 +576,35 @@ function Navbar() {
         >
           {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
-      </div>
+      </PageContainer>
 
       {mobileMenuOpen && (
-        <div className="border-t border-white/10 bg-black px-4 py-4 lg:hidden">
-          <div className="grid gap-3">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
+        <div className="border-t border-white/10 bg-black lg:hidden">
+          <PageContainer className="py-4">
+            <div className="grid gap-3">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
 
-              return (
-                <NavLink
-                  key={link.to}
-                  to={link.to}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3 rounded-2xl px-4 py-3 font-bold ${
-                      isActive
-                        ? "bg-yellow-400 text-black"
-                        : "bg-white/5 text-gray-200"
-                    }`
-                  }
-                >
-                  <Icon size={18} />
-                  {link.label}
-                </NavLink>
-              );
-            })}
-          </div>
+                return (
+                  <NavLink
+                    key={link.to}
+                    to={link.to}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={({ isActive }) =>
+                      `flex items-center gap-3 rounded-2xl px-4 py-3 font-bold ${
+                        isActive
+                          ? "bg-yellow-400 text-black"
+                          : "bg-white/5 text-gray-200"
+                      }`
+                    }
+                  >
+                    <Icon size={18} />
+                    {link.label}
+                  </NavLink>
+                );
+              })}
+            </div>
+          </PageContainer>
         </div>
       )}
     </header>
@@ -607,24 +619,23 @@ function HomePage({ vehicles = [], onView, onInterest }) {
 
   return (
     <>
-      <section className="relative overflow-hidden px-4 py-16 sm:px-6 md:px-10 lg:px-20 lg:py-24">
+      <section className="relative overflow-hidden py-8 sm:py-12 lg:py-14">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(234,179,8,0.25),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(22,101,52,0.25),transparent_35%)]"></div>
 
-        <div className="relative mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2 lg:gap-14">
+        <PageContainer className="relative grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
           <div>
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-sm font-bold uppercase tracking-[0.2em] text-yellow-400">
               <Crown size={16} />
               234 Luxury Motors
             </div>
 
-            <h1 className="max-w-4xl text-4xl font-black leading-tight sm:text-5xl md:text-6xl lg:text-7xl">
+            <h1 className="max-w-4xl text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
               Luxury Vehicles from the U.S. to Africa.
             </h1>
 
             <p className="mt-6 max-w-2xl text-base leading-8 text-gray-300 sm:text-lg">
-              Browse premium vehicles sourced in the United States and message
-              234 Luxury Motors about the vehicle you want shipped to Nigeria
-              or other African destinations.
+              Browse premium vehicles sourced in the United States and request
+              shipping to Nigeria or other African destinations.
             </p>
 
             <div className="mt-10 flex flex-col gap-4 sm:flex-row">
@@ -673,11 +684,11 @@ function HomePage({ vehicles = [], onView, onInterest }) {
               </p>
             </div>
           </div>
-        </div>
+        </PageContainer>
       </section>
 
-      <section className="bg-zinc-950 px-4 py-16 sm:px-6 md:px-10 lg:px-20">
-        <div className="mx-auto max-w-7xl">
+      <section className="bg-zinc-950 py-16">
+        <PageContainer>
           <SectionHeading
             eyebrow="Featured Inventory"
             title="Luxury vehicles ready for serious buyers"
@@ -704,7 +715,7 @@ function HomePage({ vehicles = [], onView, onInterest }) {
               <ChevronRight size={18} />
             </Link>
           </div>
-        </div>
+        </PageContainer>
       </section>
 
       <HowItWorks />
