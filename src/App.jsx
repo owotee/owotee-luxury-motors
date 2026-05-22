@@ -190,7 +190,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/*" element={<AdminDashboard />} />
         <Route path="/*" element={<Website />} />
       </Routes>
     </BrowserRouter>

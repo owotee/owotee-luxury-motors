@@ -1,5 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import {
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+import {
   BarChart3,
   Camera,
   Car,
@@ -168,6 +175,36 @@ const badges = [
 const years = Array.from({ length: 18 }, (_, index) =>
   String(new Date().getFullYear() + 1 - index),
 );
+const adminPages = [
+  {
+    key: "overview",
+    path: "/admin/overview",
+    label: "Overview",
+    title: "Business Overview",
+    icon: BarChart3,
+  },
+  {
+    key: "inventory",
+    path: "/admin/inventory",
+    label: "Inventory",
+    title: "Vehicle Inventory",
+    icon: Car,
+  },
+  {
+    key: "messages",
+    path: "/admin/messages",
+    label: "Interest Messages",
+    title: "Customer Interest",
+    icon: Inbox,
+  },
+  {
+    key: "requests",
+    path: "/admin/requests",
+    label: "Vehicle Requests",
+    title: "Custom Requests",
+    icon: Send,
+  },
+];
 
 function AdminDashboard() {
   const [token, setToken] = useState(
@@ -182,7 +219,25 @@ function AdminDashboard() {
   const [messages, setMessages] = useState([]);
   const [requests, setRequests] = useState([]);
 
-  const [activeTab, setActiveTab] = useState("overview");
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const activeTab = useMemo(() => {
+    const currentPage = adminPages.find((page) =>
+      location.pathname.startsWith(page.path),
+    );
+
+    return currentPage?.key || "overview";
+  }, [location.pathname]);
+
+  const activePage = useMemo(() => {
+    return adminPages.find((page) => page.key === activeTab) || adminPages[0];
+  }, [activeTab]);
+
+  const goToAdminPage = (pageKey) => {
+    navigate(`/admin/${pageKey}`);
+    setSidebarOpen(false);
+  };
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const [vehicleForm, setVehicleForm] = useState(emptyVehicleForm);
@@ -314,6 +369,7 @@ function AdminDashboard() {
 
       localStorage.setItem("owoteeAdminToken", data.token);
       setToken(data.token);
+      navigate("/admin/overview", { replace: true });
       setNotice("Login successful.");
     } catch (err) {
       setError(err.message || "Unable to login.");
@@ -476,7 +532,7 @@ function AdminDashboard() {
 
       closeEditor();
       await loadDashboard();
-      setActiveTab("inventory");
+      navigate("/admin/inventory");
     } catch (err) {
       setError(err.message || "Unable to save vehicle.");
     } finally {
@@ -652,40 +708,31 @@ function AdminDashboard() {
                 icon={BarChart3}
                 label="Overview"
                 active={activeTab === "overview"}
-                onClick={() => {
-                  setActiveTab("overview");
-                  setSidebarOpen(false);
-                }}
+                onClick={() => goToAdminPage("overview")}
               />
+
               <SidebarButton
                 icon={Car}
                 label="Inventory"
                 active={activeTab === "inventory"}
                 count={vehicles.length}
-                onClick={() => {
-                  setActiveTab("inventory");
-                  setSidebarOpen(false);
-                }}
+                onClick={() => goToAdminPage("inventory")}
               />
+
               <SidebarButton
                 icon={Inbox}
                 label="Interest Messages"
                 active={activeTab === "messages"}
                 count={messages.length}
-                onClick={() => {
-                  setActiveTab("messages");
-                  setSidebarOpen(false);
-                }}
+                onClick={() => goToAdminPage("messages")}
               />
+
               <SidebarButton
                 icon={Send}
                 label="Vehicle Requests"
                 active={activeTab === "requests"}
                 count={requests.length}
-                onClick={() => {
-                  setActiveTab("requests");
-                  setSidebarOpen(false);
-                }}
+                onClick={() => goToAdminPage("requests")}
               />
             </nav>
 
@@ -725,10 +772,7 @@ function AdminDashboard() {
                     Dashboard
                   </p>
                   <h1 className="text-2xl font-black tracking-tight sm:text-3xl">
-                    {activeTab === "overview" && "Business Overview"}
-                    {activeTab === "inventory" && "Vehicle Inventory"}
-                    {activeTab === "messages" && "Customer Interest"}
-                    {activeTab === "requests" && "Custom Requests"}
+                    {activePage.title}
                   </h1>
                 </div>
               </div>
@@ -757,33 +801,51 @@ function AdminDashboard() {
             {error && <Alert type="error" message={error} />}
             {notice && <Alert type="success" message={notice} />}
 
-            {activeTab === "overview" && (
-              <OverviewPanel
-                stats={stats}
-                vehicles={vehicles}
-                messages={messages}
-                requests={requests}
-                openCreateEditor={openCreateEditor}
-                setActiveTab={setActiveTab}
+            <Routes>
+              <Route index element={<Navigate to="overview" replace />} />
+
+              <Route
+                path="overview"
+                element={
+                  <OverviewPanel
+                    stats={stats}
+                    vehicles={vehicles}
+                    messages={messages}
+                    requests={requests}
+                    openCreateEditor={openCreateEditor}
+                    goToAdminPage={goToAdminPage}
+                  />
+                }
               />
-            )}
 
-            {activeTab === "inventory" && (
-              <InventoryPanel
-                vehicles={filteredVehicles}
-                inventorySearch={inventorySearch}
-                setInventorySearch={setInventorySearch}
-                statusFilter={statusFilter}
-                setStatusFilter={setStatusFilter}
-                openCreateEditor={openCreateEditor}
-                openEditEditor={openEditEditor}
-                handleDeleteVehicle={handleDeleteVehicle}
+              <Route
+                path="inventory"
+                element={
+                  <InventoryPanel
+                    vehicles={filteredVehicles}
+                    inventorySearch={inventorySearch}
+                    setInventorySearch={setInventorySearch}
+                    statusFilter={statusFilter}
+                    setStatusFilter={setStatusFilter}
+                    openCreateEditor={openCreateEditor}
+                    openEditEditor={openEditEditor}
+                    handleDeleteVehicle={handleDeleteVehicle}
+                  />
+                }
               />
-            )}
 
-            {activeTab === "messages" && <MessagesPanel messages={messages} />}
+              <Route
+                path="messages"
+                element={<MessagesPanel messages={messages} />}
+              />
 
-            {activeTab === "requests" && <RequestsPanel requests={requests} />}
+              <Route
+                path="requests"
+                element={<RequestsPanel requests={requests} />}
+              />
+
+              <Route path="*" element={<Navigate to="overview" replace />} />
+            </Routes>
           </div>
         </main>
       </div>
@@ -865,7 +927,7 @@ function OverviewPanel({
   messages,
   requests,
   openCreateEditor,
-  setActiveTab,
+  goToAdminPage,
 }) {
   const latestVehicles = vehicles.slice(0, 4);
   const latestMessages = messages.slice(0, 3);
@@ -944,17 +1006,17 @@ function OverviewPanel({
             <QuickAction
               icon={Car}
               label="View Inventory"
-              onClick={() => setActiveTab("inventory")}
+              onClick={() => goToAdminPage("inventory")}
             />
             <QuickAction
               icon={Inbox}
               label="Read Messages"
-              onClick={() => setActiveTab("messages")}
+              onClick={() => goToAdminPage("messages")}
             />
             <QuickAction
               icon={Send}
               label="View Requests"
-              onClick={() => setActiveTab("requests")}
+              onClick={() => goToAdminPage("requests")}
             />
           </div>
         </div>
