@@ -772,35 +772,51 @@ function InventoryPage({
   onView,
   onInterest,
 }) {
-  return (
-    <section className="bg-zinc-950 px-4 py-16 sm:px-6 md:px-10 lg:px-20 lg:py-20">
-      <div className="mx-auto max-w-7xl">
-        <SectionHeading
-          eyebrow="Available Inventory"
-          title="Search Luxury Vehicles"
-          text="Browse luxury vehicles available for U.S. purchase and export support to Nigeria and other African destinations."
-        />
+  const inputClass =
+    "h-13 w-full rounded-2xl border border-white/10 bg-black px-4 text-sm font-semibold text-white outline-none placeholder:text-gray-500 sm:h-14 sm:text-base";
 
-        <div className="mb-10 rounded-[2rem] border border-white/10 bg-white/5 p-5">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+  const selectClass =
+    "h-13 w-full rounded-2xl border border-white/10 bg-black px-4 text-sm font-semibold text-white outline-none sm:h-14 sm:text-base";
+
+  return (
+    <section className="bg-zinc-950 py-10 sm:py-16 lg:py-20">
+      <PageContainer>
+        <div className="mx-auto mb-8 max-w-3xl text-center sm:mb-10">
+          <p className="text-xs font-black uppercase tracking-[0.35em] text-yellow-400 sm:text-sm">
+            Available Inventory
+          </p>
+
+          <h1 className="mt-3 text-3xl font-black leading-tight text-white sm:text-4xl md:text-5xl">
+            Search Luxury Vehicles
+          </h1>
+
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-gray-400 sm:text-lg sm:leading-8">
+            Browse luxury vehicles available for U.S. purchase and export
+            support to Nigeria and other African destinations.
+          </p>
+        </div>
+
+        <div className="mb-8 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 sm:rounded-[2rem] sm:p-5">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
             <label className="relative">
               <Search
                 size={18}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
               />
+
               <input
                 type="text"
                 placeholder="Search make, model, color..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-2xl border border-white/10 bg-black px-11 py-4 text-white outline-none placeholder:text-gray-500"
+                className={`${inputClass} pl-11`}
               />
             </label>
 
             <select
               value={make}
               onChange={(e) => setMake(e.target.value)}
-              className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none"
+              className={selectClass}
             >
               {makes.map((item) => (
                 <option key={item}>{item}</option>
@@ -810,7 +826,7 @@ function InventoryPage({
             <select
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none"
+              className={selectClass}
             >
               {bodyTypes.map((item) => (
                 <option key={item}>{item}</option>
@@ -820,7 +836,7 @@ function InventoryPage({
             <select
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none"
+              className={selectClass}
             >
               {destinations.map((item) => (
                 <option key={item}>{item}</option>
@@ -830,7 +846,7 @@ function InventoryPage({
             <select
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
-              className="rounded-2xl border border-white/10 bg-black px-4 py-4 text-white outline-none"
+              className={selectClass}
             >
               <option value="All">Any Price</option>
               <option value="75000">Under $75,000</option>
@@ -842,7 +858,7 @@ function InventoryPage({
         </div>
 
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-          <p className="font-semibold text-gray-400">
+          <p className="text-sm font-semibold text-gray-400 sm:text-base">
             {loadingVehicles
               ? "Loading vehicles..."
               : `${filteredVehicles.length} vehicles found`}
@@ -868,7 +884,7 @@ function InventoryPage({
         </div>
 
         {filteredVehicles.length === 0 && !loadingVehicles && (
-          <div className="rounded-[2rem] border border-dashed border-white/20 p-12 text-center">
+          <div className="rounded-[2rem] border border-dashed border-white/20 p-8 text-center sm:p-12">
             <h3 className="text-2xl font-black">No vehicles found.</h3>
 
             <p className="mt-2 text-gray-400">
@@ -876,7 +892,7 @@ function InventoryPage({
             </p>
           </div>
         )}
-      </div>
+      </PageContainer>
     </section>
   );
 }
