@@ -6,10 +6,6 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/uploads/:path*",
-      "destination": "http://3.137.207.41/uploads/:path*"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
