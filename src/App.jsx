@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import {
   BrowserRouter,
   Link,
@@ -194,12 +195,16 @@ function getVehicleWhatsAppLink(vehicle) {
 
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/admin/*" element={<AdminDashboard />} />
-        <Route path="/*" element={<Website />} />
-      </Routes>
-    </BrowserRouter>
+    <>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/admin/*" element={<AdminDashboard />} />
+          <Route path="/*" element={<Website />} />
+        </Routes>
+      </BrowserRouter>
+
+      <Analytics />
+    </>
   );
 }
 
