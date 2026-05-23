@@ -703,7 +703,7 @@ function AdminDashboard() {
               </button>
             </div>
 
-            <nav className="flex-1 space-y-2 p-4">
+            <nav className="space-y-2 p-4">
               <SidebarButton
                 icon={BarChart3}
                 label="Overview"
@@ -734,17 +734,17 @@ function AdminDashboard() {
                 count={requests.length}
                 onClick={() => goToAdminPage("requests")}
               />
-            </nav>
 
-            <div className="border-t border-white/10 p-4">
-              <button
-                onClick={handleLogout}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 px-4 py-3 font-bold text-white/80 transition hover:bg-white/10"
-              >
-                <LogOut size={18} />
-                Logout
-              </button>
-            </div>
+              <div className="pt-4">
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 font-bold text-red-200 transition hover:bg-red-500 hover:text-white"
+                >
+                  <LogOut size={18} />
+                  Logout
+                </button>
+              </div>
+            </nav>
           </div>
         </aside>
 
