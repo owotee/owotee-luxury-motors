@@ -499,6 +499,8 @@ function Website() {
 
       <Footer />
 
+      <FloatingWhatsAppButton />
+
       {selectedVehicle && (
         <VehicleModal
           vehicle={selectedVehicle}
@@ -772,6 +774,62 @@ function HomePage({ vehicles = [], onView, onInterest }) {
   );
 }
 
+function FAQSection() {
+  const faqs = [
+    {
+      question:
+        "Are shipping and processing fees included in the vehicle prices?",
+      answer:
+        "No. Prices shown are base vehicle prices only. Shipping, clearing, customs, duty, port charges, processing fees, and destination-related costs are not included.",
+    },
+    {
+      question: "Do you ship vehicles to Nigeria?",
+      answer:
+        "Yes. Nigeria is one of our main focus destinations. We also support buyers shipping vehicles to other African destinations.",
+    },
+    {
+      question: "Can I request a vehicle that is not listed?",
+      answer:
+        "Yes. Use the Request Vehicle page to send the make, model, year range, budget, and destination country. We will review your request and respond with next steps.",
+    },
+    {
+      question: "How do I ask about a vehicle?",
+      answer:
+        "You can click WhatsApp, Message Us, or I’m Interested on any vehicle listing. You can also use the contact page to send your details.",
+    },
+    {
+      question: "Are the vehicles already in Africa?",
+      answer:
+        "Most vehicles are sourced from the United States for purchase and export support. Availability and timing may vary by vehicle.",
+    },
+  ];
+
+  return (
+    <section className="bg-black py-12 sm:py-16">
+      <PageContainer>
+        <SectionHeading
+          eyebrow="FAQ"
+          title="Common questions from buyers"
+          text="Quick answers about pricing, shipping, vehicle requests, and how to start the process."
+        />
+
+        <div className="mx-auto grid max-w-4xl gap-4">
+          {faqs.map((faq) => (
+            <div
+              key={faq.question}
+              className="rounded-[1.5rem] border border-white/10 bg-black p-5"
+            >
+              <h3 className="text-lg font-black text-white">{faq.question}</h3>
+
+              <p className="mt-3 leading-7 text-gray-400">{faq.answer}</p>
+            </div>
+          ))}
+        </div>
+      </PageContainer>
+    </section>
+  );
+}
+
 function AboutPage() {
   const problems = [
     {
@@ -959,6 +1017,8 @@ function AboutPage() {
         </PageContainer>
       </section>
 
+      <FAQSection />
+
       <section className="bg-black py-12 sm:py-16">
         <PageContainer>
           <div className="overflow-hidden rounded-[2rem] border border-yellow-400/20 bg-yellow-400 p-6 text-black sm:p-8 lg:p-10">
@@ -1021,11 +1081,20 @@ function InventoryPage({
   onView,
   onInterest,
 }) {
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
   const inputClass =
-    "h-13 w-full rounded-2xl border border-white/10 bg-black px-4 text-sm font-semibold text-white outline-none placeholder:text-gray-500 sm:h-14 sm:text-base";
+    "h-12 w-full rounded-2xl border border-white/10 bg-black px-4 text-sm font-semibold text-white outline-none placeholder:text-gray-500 sm:h-14 sm:text-base";
 
   const selectClass =
-    "h-13 w-full rounded-2xl border border-white/10 bg-black px-4 text-sm font-semibold text-white outline-none sm:h-14 sm:text-base";
+    "h-12 w-full rounded-2xl border border-white/10 bg-black px-4 text-sm font-semibold text-white outline-none sm:h-14 sm:text-base";
+
+  const resetFilters = () => {
+    setMake("All");
+    setBody("All");
+    setDestination("All");
+    setMaxPrice("All");
+  };
 
   return (
     <section className="bg-zinc-950 py-10 sm:py-16 lg:py-20">
@@ -1047,20 +1116,31 @@ function InventoryPage({
 
         <div className="mb-8 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 sm:rounded-[2rem] sm:p-5">
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
-            <label className="relative md:col-span-2 lg:col-span-1">
-              <Search
-                size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
-              />
+            <div className="grid grid-cols-[1fr_auto] gap-3 md:contents">
+              <label className="relative md:col-span-2 lg:col-span-1">
+                <Search
+                  size={18}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+                />
 
-              <input
-                type="text"
-                placeholder="Search make, model, color..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className={`${inputClass} pl-11`}
-              />
-            </label>
+                <input
+                  type="text"
+                  placeholder="Search make, model, color..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className={`${inputClass} pl-11`}
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(true)}
+                className="flex h-12 items-center justify-center gap-2 rounded-2xl border border-yellow-400/30 bg-yellow-400 px-4 text-sm font-black text-black md:hidden"
+              >
+                <Settings size={18} />
+                Filter
+              </button>
+            </div>
 
             <select
               value={make}
@@ -1104,6 +1184,10 @@ function InventoryPage({
               <option value="150000">Under $150,000</option>
             </select>
           </div>
+
+          <p className="mt-3 text-xs font-semibold text-gray-500 md:hidden">
+            Search directly or tap Filter to narrow results.
+          </p>
         </div>
 
         <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -1142,6 +1226,98 @@ function InventoryPage({
           </div>
         )}
       </PageContainer>
+
+      {mobileFiltersOpen && (
+        <div className="fixed inset-0 z-[1000] bg-black/70 backdrop-blur-sm md:hidden">
+          <button
+            type="button"
+            className="absolute inset-0"
+            onClick={() => setMobileFiltersOpen(false)}
+            aria-label="Close filters"
+          />
+
+          <div className="absolute inset-x-0 bottom-0 rounded-t-[2rem] border-t border-white/10 bg-zinc-950 p-4 shadow-2xl">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.25em] text-yellow-400">
+                  Filters
+                </p>
+                <h2 className="mt-1 text-2xl font-black">Refine Inventory</h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(false)}
+                className="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-white"
+              >
+                <X size={22} />
+              </button>
+            </div>
+
+            <div className="grid gap-3">
+              <select
+                value={make}
+                onChange={(e) => setMake(e.target.value)}
+                className={selectClass}
+              >
+                {makes.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+
+              <select
+                value={body}
+                onChange={(e) => setBody(e.target.value)}
+                className={selectClass}
+              >
+                {bodyTypes.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+
+              <select
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                className={selectClass}
+              >
+                {destinations.map((item) => (
+                  <option key={item}>{item}</option>
+                ))}
+              </select>
+
+              <select
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                className={selectClass}
+              >
+                <option value="All">Any Price</option>
+                <option value="75000">Under $75,000</option>
+                <option value="100000">Under $100,000</option>
+                <option value="125000">Under $125,000</option>
+                <option value="150000">Under $150,000</option>
+              </select>
+            </div>
+
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="rounded-full border border-white/20 px-5 py-3 font-black text-white"
+              >
+                Reset
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setMobileFiltersOpen(false)}
+                className="rounded-full bg-yellow-400 px-5 py-3 font-black text-black"
+              >
+                Apply
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
@@ -1594,6 +1770,25 @@ function WhatsAppIcon({ size = 18 }) {
   );
 }
 
+function FloatingWhatsAppButton() {
+  const message = encodeURIComponent(
+    "Hello 234 Motors, I am interested in a luxury vehicle shipped to Africa.",
+  );
+
+  return (
+    <a
+      href={`https://wa.me/${BUSINESS_WHATSAPP_NUMBER}?text=${message}`}
+      target="_blank"
+      rel="noreferrer"
+      className="fixed bottom-5 right-5 z-[998] flex h-14 w-14 items-center justify-center rounded-full bg-green-500 text-black shadow-2xl shadow-green-500/30 transition hover:scale-105 hover:bg-green-400 sm:h-auto sm:w-auto sm:gap-2 sm:px-5 sm:py-4"
+      aria-label="Message 234 Motors on WhatsApp"
+    >
+      <WhatsAppIcon size={24} />
+      <span className="hidden font-black sm:inline">WhatsApp</span>
+    </a>
+  );
+}
+
 function VehicleCard({ vehicle, onView, onInterest }) {
   const vehicleStatus = vehicle.status || "Available";
   const isSold = vehicleStatus === "Sold";
@@ -1676,34 +1871,32 @@ function VehicleCard({ vehicle, onView, onInterest }) {
           </div>
         )}
 
-        <div className="mt-5 grid gap-3">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <button
-              type="button"
-              onClick={onView}
-              className="rounded-full border border-white/20 px-5 py-3 text-sm font-bold text-white hover:bg-white hover:text-black"
-            >
-              View Details
-            </button>
+        <div className="mt-5 grid grid-cols-[1fr_52px_1fr] gap-2">
+          <button
+            type="button"
+            onClick={onView}
+            className="rounded-full border border-white/20 px-3 py-3 text-xs font-black text-white transition hover:bg-white hover:text-black sm:text-sm"
+          >
+            View Details
+          </button>
 
-            <a
-              href={getVehicleWhatsAppLink(vehicle)}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center justify-center gap-2 rounded-full bg-green-500 px-5 py-3 text-center text-sm font-bold text-black hover:bg-green-400"
-            >
-              <WhatsAppIcon size={18} />
-              WhatsApp
-            </a>
-          </div>
+          <a
+            href={getVehicleWhatsAppLink(vehicle)}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Message on WhatsApp"
+            className="flex h-full items-center justify-center rounded-full bg-green-500 text-black transition hover:bg-green-400"
+          >
+            <WhatsAppIcon size={21} />
+          </a>
 
           <button
             type="button"
             onClick={onInterest}
             disabled={isSold}
-            className="rounded-full bg-yellow-400 px-5 py-3 text-sm font-bold text-black hover:bg-yellow-300 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-300"
+            className="rounded-full bg-yellow-400 px-3 py-3 text-xs font-black text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-300 sm:text-sm"
           >
-            {isSold ? "Sold" : "I’m Interested"}
+            {isSold ? "Sold" : "Interested"}
           </button>
         </div>
       </div>
