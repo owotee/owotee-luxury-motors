@@ -735,13 +735,17 @@ function HomePage({ vehicles = [], onView, onInterest }) {
           />
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {featuredVehicles.map((vehicle) => (
-              <VehicleCard
+            {featuredVehicles.map((vehicle, index) => (
+              <div
                 key={vehicle.id}
-                vehicle={vehicle}
-                onView={() => onView(vehicle)}
-                onInterest={() => onInterest(vehicle)}
-              />
+                className={index > 0 ? "hidden md:block" : ""}
+              >
+                <VehicleCard
+                  vehicle={vehicle}
+                  onView={() => onView(vehicle)}
+                  onInterest={() => onInterest(vehicle)}
+                />
+              </div>
             ))}
           </div>
 
