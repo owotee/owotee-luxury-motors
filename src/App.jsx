@@ -35,6 +35,8 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const BUSINESS_EMAIL = "info@234motors.com";
 const BUSINESS_PHONE_DISPLAY = "469-967-0440";
 const BUSINESS_WHATSAPP_NUMBER = "16996770440";
+const PRICE_DISCLAIMER =
+  "Listed prices do not include shipping, clearing, customs, duty, port charges, processing fees, or destination-related costs.";
 
 const fallbackVehicles = [
   {
@@ -729,7 +731,7 @@ function HomePage({ vehicles = [], onView, onInterest }) {
           <SectionHeading
             eyebrow="Featured Inventory"
             title="Luxury vehicles ready for serious buyers"
-            text="Preview selected vehicles, view their details, or message us directly about the one you want."
+            text="Preview selected vehicles, view their details, or message us directly about the one you want. Listed prices exclude shipping, clearing, customs, duty, port charges, and processing fees."
           />
 
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -1619,9 +1621,16 @@ function VehicleCard({ vehicle, onView, onInterest }) {
           {vehicle.year} {vehicle.make} {vehicle.model}
         </h3>
 
-        <p className="mt-3 text-2xl font-black text-yellow-400">
-          {formatPrice(vehicle.price)}
-        </p>
+        <div className="mt-3">
+          <p className="text-2xl font-black text-yellow-400">
+            {formatPrice(vehicle.price)}
+          </p>
+
+          <p className="mt-1 text-xs font-semibold leading-5 text-gray-500">
+            Price excludes shipping, clearing, customs, duty, port charges, and
+            processing fees.
+          </p>
+        </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
           <CompactSpec
@@ -1811,9 +1820,9 @@ function VehicleModal({ vehicle, onClose, onInterest }) {
             </div>
 
             <p className="mt-6 leading-7 text-gray-300">
-              This vehicle is listed for U.S. purchase and export support.
-              Message 234 Motors with your destination country for availability,
-              sourcing details, and next steps.
+              This vehicle is listed for U.S. purchase and export support. Price
+              shown is base price only. Shipping, clearing, customs, duty,
+              processing, and destination fees are not included.
             </p>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
