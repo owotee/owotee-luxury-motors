@@ -1258,6 +1258,10 @@ function InventoryPage({
               <option value="150000">Under $150,000</option>
             </select>
           </div>
+
+          <p className="mt-3 text-xs font-semibold text-gray-500 md:hidden">
+            Search directly or tap Filter to narrow results.
+          </p>
         </div>
 
         <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -1436,7 +1440,6 @@ function InventoryPage({
     </section>
   );
 }
-
 function RequestVehiclePage({
   requestForm,
   setRequestForm,

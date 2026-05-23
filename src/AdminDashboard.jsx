@@ -80,7 +80,16 @@ const emptyVehicleForm = {
   status: "Available",
   featured: false,
   features: "",
+  carousel_category: "auto",
 };
+
+const carouselCategories = [
+  { value: "auto", label: "Auto Match" },
+  { value: "luxury_suvs", label: "Luxury SUVs" },
+  { value: "executive_sedans", label: "Executive Sedans" },
+  { value: "sports_exotic", label: "Sports & Exotic" },
+  { value: "none", label: "Do Not Show in Carousel" },
+];
 
 const makes = [
   "Mercedes-Benz",
@@ -1432,6 +1441,29 @@ function VehicleEditor({
                   options={badges}
                   placeholder="New Arrival, Hot Deal, Export Ready..."
                 />
+
+                <label className="grid gap-2">
+                  <span className="text-xs font-black uppercase tracking-[0.2em] text-gray-500">
+                    Inventory Collection
+                  </span>
+
+                  <select
+                    value={vehicleForm.carousel_category || "auto"}
+                    onChange={(e) =>
+                      setVehicleForm((prev) => ({
+                        ...prev,
+                        carousel_category: e.target.value,
+                      }))
+                    }
+                    className="rounded-2xl border border-white/10 bg-black px-4 py-3 font-semibold text-white outline-none"
+                  >
+                    {carouselCategories.map((item) => (
+                      <option key={item.value} value={item.value}>
+                        {item.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
 
                 <label className="flex items-center justify-between rounded-2xl border border-black/10 bg-[#f7f3ed] p-4">
                   <span>
