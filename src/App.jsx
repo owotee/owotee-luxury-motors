@@ -33,7 +33,7 @@ import AdminDashboard from "./AdminDashboard.jsx";
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const BUSINESS_EMAIL = "info@234motors.com";
-const BUSINESS_PHONE_DISPLAY = "6996770440";
+const BUSINESS_PHONE_DISPLAY = "469-967-0440";
 const BUSINESS_WHATSAPP_NUMBER = "16996770440";
 
 const fallbackVehicles = [
@@ -416,6 +416,8 @@ function Website() {
           }
         />
 
+        <Route path="/about" element={<AboutPage />} />
+
         <Route
           path="/inventory"
           element={
@@ -534,6 +536,7 @@ function Navbar() {
 
   const navLinks = [
     { to: "/", label: "Home", icon: Home },
+    { to: "/about", label: "About", icon: ShieldCheck },
     { to: "/inventory", label: "Inventory", icon: List },
     { to: "/request", label: "Request Vehicle", icon: FileText },
     { to: "/contact", label: "Contact", icon: MessageCircle },
@@ -754,6 +757,236 @@ function HomePage({ vehicles = [], onView, onInterest }) {
 
       <HowItWorks />
     </>
+  );
+}
+
+function AboutPage() {
+  const problems = [
+    {
+      icon: Search,
+      title: "Finding the right vehicle is stressful",
+      text: "Many buyers know the type of car they want, but finding a clean, reliable, well-priced luxury vehicle in the U.S. market can be difficult from overseas.",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Trust is a major concern",
+      text: "International buyers often worry about vehicle condition, hidden issues, unreliable sellers, fake listings, and unclear communication during the buying process.",
+    },
+    {
+      icon: Truck,
+      title: "Export can be confusing",
+      text: "Buying a car is only one part of the process. Export preparation, documentation, shipping coordination, and destination planning can become overwhelming.",
+    },
+  ];
+
+  const services = [
+    {
+      icon: Car,
+      title: "Luxury Vehicle Sourcing",
+      text: "We help clients find premium vehicles from the U.S. market, including SUVs, executive sedans, sports cars, and high-end luxury models.",
+    },
+    {
+      icon: FileText,
+      title: "Vehicle Details & Buyer Support",
+      text: "We help simplify the decision-making process by giving buyers a clear way to review vehicles, request more information, and communicate interest.",
+    },
+    {
+      icon: Globe2,
+      title: "Africa-Focused Export Support",
+      text: "Our business is built around buyers shipping vehicles to Africa, especially Nigeria, with a process designed around international needs.",
+    },
+    {
+      icon: MessageCircle,
+      title: "Direct Communication",
+      text: "Clients can contact us directly through the website or WhatsApp about a listed vehicle or request a specific vehicle that is not currently listed.",
+    },
+  ];
+
+  return (
+    <section className="bg-black text-white">
+      <div className="relative overflow-hidden py-10 sm:py-14 lg:py-16">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(234,179,8,0.24),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(22,101,52,0.2),transparent_36%)]"></div>
+
+        <PageContainer className="relative">
+          <div className="mx-auto max-w-4xl text-center">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-xs font-black uppercase tracking-[0.25em] text-yellow-400 sm:text-sm">
+              <Crown size={16} />
+              About 234 Motors
+            </div>
+
+            <h1 className="text-4xl font-black leading-tight tracking-tight sm:text-5xl md:text-6xl">
+              A better way to buy luxury vehicles for export.
+            </h1>
+
+            <p className="mx-auto mt-6 max-w-3xl text-base leading-8 text-gray-300 sm:text-lg">
+              234 Motors helps clients source premium vehicles from the United
+              States and connect with a smoother export-focused buying process
+              for Nigeria and other African destinations.
+            </p>
+          </div>
+        </PageContainer>
+      </div>
+
+      <section className="bg-zinc-950 py-12 sm:py-16">
+        <PageContainer>
+          <div className="grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
+            <div>
+              <p className="text-sm font-black uppercase tracking-[0.3em] text-yellow-400">
+                The Problem We Solve
+              </p>
+
+              <h2 className="mt-3 text-3xl font-black leading-tight sm:text-4xl">
+                Buying a luxury vehicle from another country should not feel
+                risky.
+              </h2>
+
+              <p className="mt-5 leading-8 text-gray-400">
+                Many buyers in Nigeria and across Africa want access to quality
+                vehicles from the U.S., but the process can be difficult. Buyers
+                have to deal with vehicle searches, seller trust, condition
+                questions, communication delays, and export preparation.
+              </p>
+
+              <p className="mt-4 leading-8 text-gray-400">
+                234 Motors exists to make that process clearer. We give clients
+                a simple way to browse available vehicles, request specific
+                models, and start a direct conversation about the vehicle they
+                want.
+              </p>
+            </div>
+
+            <div className="grid gap-4">
+              {problems.map((problem) => {
+                const Icon = problem.icon;
+
+                return (
+                  <div
+                    key={problem.title}
+                    className="rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-5"
+                  >
+                    <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-2xl bg-yellow-400 text-black">
+                      <Icon size={22} />
+                    </div>
+
+                    <h3 className="text-xl font-black">{problem.title}</h3>
+
+                    <p className="mt-3 leading-7 text-gray-400">
+                      {problem.text}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </PageContainer>
+      </section>
+
+      <section className="bg-black py-12 sm:py-16">
+        <PageContainer>
+          <SectionHeading
+            eyebrow="What We Do"
+            title="We connect serious buyers with premium U.S. vehicles"
+            text="Our role is to make luxury vehicle sourcing easier, clearer, and more direct for buyers who want vehicles shipped to Africa."
+          />
+
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            {services.map((service) => {
+              const Icon = service.icon;
+
+              return (
+                <div
+                  key={service.title}
+                  className="rounded-[2rem] border border-white/10 bg-white/[0.04] p-5 transition hover:border-yellow-400/50"
+                >
+                  <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-yellow-400 text-black">
+                    <Icon size={23} />
+                  </div>
+
+                  <h3 className="text-xl font-black">{service.title}</h3>
+
+                  <p className="mt-3 text-sm leading-7 text-gray-400">
+                    {service.text}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </PageContainer>
+      </section>
+
+      <section className="bg-zinc-950 py-12 sm:py-16">
+        <PageContainer>
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="rounded-[2rem] border border-white/10 bg-black p-6">
+              <p className="text-4xl font-black text-yellow-400">01</p>
+              <h3 className="mt-4 text-2xl font-black">Browse</h3>
+              <p className="mt-3 leading-7 text-gray-400">
+                View available luxury vehicles, compare key details, and choose
+                the vehicle you are interested in.
+              </p>
+            </div>
+
+            <div className="rounded-[2rem] border border-white/10 bg-black p-6">
+              <p className="text-4xl font-black text-yellow-400">02</p>
+              <h3 className="mt-4 text-2xl font-black">Message Us</h3>
+              <p className="mt-3 leading-7 text-gray-400">
+                Contact us directly about a listed vehicle or send a request for
+                a specific make, model, year, and budget.
+              </p>
+            </div>
+
+            <div className="rounded-[2rem] border border-white/10 bg-black p-6">
+              <p className="text-4xl font-black text-yellow-400">03</p>
+              <h3 className="mt-4 text-2xl font-black">Plan Export</h3>
+              <p className="mt-3 leading-7 text-gray-400">
+                We support the next steps around vehicle details, purchase
+                coordination, and export preparation for African destinations.
+              </p>
+            </div>
+          </div>
+        </PageContainer>
+      </section>
+
+      <section className="bg-black py-12 sm:py-16">
+        <PageContainer>
+          <div className="overflow-hidden rounded-[2rem] border border-yellow-400/20 bg-yellow-400 p-6 text-black sm:p-8 lg:p-10">
+            <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div>
+                <p className="text-sm font-black uppercase tracking-[0.25em]">
+                  Ready to start?
+                </p>
+
+                <h2 className="mt-3 text-3xl font-black leading-tight sm:text-4xl">
+                  Browse inventory or request the exact vehicle you want.
+                </h2>
+
+                <p className="mt-4 max-w-2xl font-semibold leading-7 text-black/70">
+                  Whether you already know the vehicle you want or need help
+                  finding options, 234 Motors gives you a direct path to start
+                  the conversation.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-3 sm:flex-row lg:flex-col">
+                <Link
+                  to="/inventory"
+                  className="rounded-full bg-black px-8 py-4 text-center font-black text-white hover:bg-zinc-900"
+                >
+                  Browse Vehicles
+                </Link>
+
+                <Link
+                  to="/request"
+                  className="rounded-full border border-black px-8 py-4 text-center font-black text-black hover:bg-black hover:text-white"
+                >
+                  Request Vehicle
+                </Link>
+              </div>
+            </div>
+          </div>
+        </PageContainer>
+      </section>
+    </section>
   );
 }
 
