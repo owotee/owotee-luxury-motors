@@ -32,6 +32,10 @@ import AdminDashboard from "./AdminDashboard.jsx";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
+const BUSINESS_EMAIL = "info@234motors.com";
+const BUSINESS_PHONE_DISPLAY = "6996770440";
+const BUSINESS_WHATSAPP_NUMBER = "16996770440";
+
 const fallbackVehicles = [
   {
     id: 1,
@@ -183,7 +187,7 @@ function getVehicleWhatsAppLink(vehicle) {
     `Hello 234 Motors, I am interested in the ${vehicleName}.`,
   );
 
-  return `https://wa.me/14697512533?text=${message}`;
+  return `https://wa.me/${BUSINESS_WHATSAPP_NUMBER}?text=${message}`;
 }
 
 function App() {
@@ -1061,13 +1065,16 @@ function ContactPage({
           />
 
           <div className="mt-8 grid gap-4">
-            <IconText icon={Phone} title="WhatsApp: +1 469 751 2533" />
-            <IconText icon={Mail} title="info@owoteeluxurymotors.com" />
+            <IconText
+              icon={Phone}
+              title={`WhatsApp: ${BUSINESS_PHONE_DISPLAY}`}
+            />
+            <IconText icon={Mail} title={BUSINESS_EMAIL} />
             <IconText icon={Globe2} title="Focus Destination: Nigeria" />
           </div>
 
           <a
-            href={`https://wa.me/14697512533?text=${whatsappMessage}`}
+            href={`https://wa.me/${BUSINESS_WHATSAPP_NUMBER}?text=${whatsappMessage}`}
             target="_blank"
             rel="noreferrer"
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-green-500 px-8 py-4 font-bold text-black hover:bg-green-400"
@@ -1557,8 +1564,8 @@ function VehicleModal({ vehicle, onClose, onInterest }) {
 
             <p className="mt-6 leading-7 text-gray-300">
               This vehicle is listed for U.S. purchase and export support.
-              Message 234 Motors with your destination country for
-              availability, sourcing details, and next steps.
+              Message 234 Motors with your destination country for availability,
+              sourcing details, and next steps.
             </p>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -1694,11 +1701,11 @@ function Footer() {
           </p>
           <p className="flex items-center gap-2">
             <Mail size={17} />
-            owotee1@gmail.com
+            {BUSINESS_EMAIL}
           </p>
           <p className="flex items-center gap-2">
             <Phone size={17} />
-            +1 469 751 2533
+            {BUSINESS_PHONE_DISPLAY}
           </p>
         </div>
       </div>
