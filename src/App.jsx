@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import {
@@ -670,8 +670,8 @@ function HeroImage() {
 function HomePage({ vehicles = [], onView, onInterest }) {
   const featuredVehicles =
     vehicles.filter((vehicle) => vehicle.featured).length > 0
-      ? vehicles.filter((vehicle) => vehicle.featured).slice(0, 3)
-      : vehicles.slice(0, 3);
+      ? vehicles.filter((vehicle) => vehicle.featured).slice(0, 6)
+      : vehicles.slice(0, 6);
 
   return (
     <>
@@ -742,20 +742,11 @@ function HomePage({ vehicles = [], onView, onInterest }) {
             text="Preview selected vehicles, view their details, or message us directly about the one you want. Listed prices exclude shipping, clearing, customs, duty, port charges, and processing fees."
           />
 
-          <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-            {featuredVehicles.map((vehicle, index) => (
-              <div
-                key={vehicle.id}
-                className={index > 0 ? "hidden md:block" : ""}
-              >
-                <VehicleCard
-                  vehicle={vehicle}
-                  onView={() => onView(vehicle)}
-                  onInterest={() => onInterest(vehicle)}
-                />
-              </div>
-            ))}
-          </div>
+          <FeaturedInventoryCarousel
+            vehicles={featuredVehicles}
+            onView={onView}
+            onInterest={onInterest}
+          />
 
           <div className="mt-10 text-center">
             <Link
@@ -1786,6 +1777,80 @@ function FloatingWhatsAppButton() {
       <WhatsAppIcon size={24} />
       <span className="hidden font-black sm:inline">WhatsApp</span>
     </a>
+  );
+}
+
+function FeaturedInventoryCarousel({ vehicles, onView, onInterest }) {
+  const scrollRef = useRef(null);
+
+  const scrollCarousel = (direction) => {
+    if (!scrollRef.current) return;
+
+    const scrollAmount = scrollRef.current.clientWidth * 0.9;
+
+    scrollRef.current.scrollBy({
+      left: direction === "next" ? scrollAmount : -scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
+  if (!vehicles.length) {
+    return (
+      <div className="rounded-[2rem] border border-dashed border-white/20 p-10 text-center">
+        <h3 className="text-2xl font-black">No featured vehicles yet.</h3>
+        <p className="mt-2 text-gray-400">
+          Add vehicles in the admin dashboard and mark them as featured.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <p className="text-sm font-semibold text-gray-500">
+          Swipe or use arrows to browse featured vehicles.
+        </p>
+
+        <div className="hidden items-center gap-2 sm:flex">
+          <button
+            type="button"
+            onClick={() => scrollCarousel("previous")}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white transition hover:bg-white hover:text-black"
+            aria-label="Previous featured vehicles"
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => scrollCarousel("next")}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-black transition hover:bg-yellow-300"
+            aria-label="Next featured vehicles"
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+      >
+        {vehicles.map((vehicle) => (
+          <div
+            key={vehicle.id}
+            className="w-[88%] shrink-0 snap-start sm:w-[48%] xl:w-[31.5%]"
+          >
+            <VehicleCard
+              vehicle={vehicle}
+              onView={() => onView(vehicle)}
+              onInterest={() => onInterest(vehicle)}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
   );
 }
 
