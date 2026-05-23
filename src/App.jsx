@@ -1087,6 +1087,71 @@ function InventoryPage({
     setMaxPrice("All");
   };
 
+  const getVehicleText = (vehicle) =>
+    `${vehicle.make || ""} ${vehicle.model || ""} ${vehicle.body || ""} ${
+      vehicle.badge || ""
+    } ${vehicle.features?.join(" ") || ""}`.toLowerCase();
+
+  const recentlyAdded = filteredVehicles.slice(0, 6);
+
+  const luxurySuvs = filteredVehicles
+    .filter((vehicle) => {
+      const text = getVehicleText(vehicle);
+
+      return (
+        text.includes("suv") ||
+        text.includes("range rover") ||
+        text.includes("g-wagon") ||
+        text.includes("g wagon") ||
+        text.includes("escalade") ||
+        text.includes("x7") ||
+        text.includes("lx") ||
+        text.includes("bentayga") ||
+        text.includes("premium suv")
+      );
+    })
+    .slice(0, 8);
+
+  const executiveSedans = filteredVehicles
+    .filter((vehicle) => {
+      const text = getVehicleText(vehicle);
+
+      return (
+        text.includes("sedan") ||
+        text.includes("executive") ||
+        text.includes("business class") ||
+        text.includes("s-class") ||
+        text.includes("s class") ||
+        text.includes("7 series") ||
+        text.includes("a8") ||
+        text.includes("lexus ls") ||
+        text.includes("genesis g90")
+      );
+    })
+    .slice(0, 8);
+
+  const sportsAndExotic = filteredVehicles
+    .filter((vehicle) => {
+      const text = getVehicleText(vehicle);
+
+      return (
+        text.includes("sports") ||
+        text.includes("sport") ||
+        text.includes("exotic") ||
+        text.includes("coupe") ||
+        text.includes("convertible") ||
+        text.includes("limited edition") ||
+        text.includes("porsche") ||
+        text.includes("lamborghini") ||
+        text.includes("ferrari") ||
+        text.includes("mclaren") ||
+        text.includes("corvette") ||
+        text.includes("amg") ||
+        text.includes(" m ")
+      );
+    })
+    .slice(0, 8);
+
   return (
     <section className="bg-zinc-950 py-10 sm:py-16 lg:py-20">
       <PageContainer>
@@ -1181,7 +1246,7 @@ function InventoryPage({
           </p>
         </div>
 
-        <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <p className="text-sm font-semibold text-gray-400 sm:text-base">
             {loadingVehicles
               ? "Loading vehicles..."
@@ -1194,6 +1259,51 @@ function InventoryPage({
           >
             Do not see your vehicle?
           </Link>
+        </div>
+
+        {!loadingVehicles && filteredVehicles.length > 0 && (
+          <div className="mb-12">
+            <InventoryCarouselSection
+              title="Recently Added"
+              text="Fresh listings and newly available luxury vehicles."
+              vehicles={recentlyAdded}
+              onView={onView}
+              onInterest={onInterest}
+            />
+
+            <InventoryCarouselSection
+              title="Luxury SUVs"
+              text="Premium SUVs built for comfort, presence, and executive travel."
+              vehicles={luxurySuvs}
+              onView={onView}
+              onInterest={onInterest}
+            />
+
+            <InventoryCarouselSection
+              title="Executive Sedans"
+              text="Refined business-class sedans for luxury daily driving."
+              vehicles={executiveSedans}
+              onView={onView}
+              onInterest={onInterest}
+            />
+
+            <InventoryCarouselSection
+              title="Sports & Exotic"
+              text="Performance-focused vehicles with standout design and road presence."
+              vehicles={sportsAndExotic}
+              onView={onView}
+              onInterest={onInterest}
+            />
+          </div>
+        )}
+
+        <div className="mb-5">
+          <h2 className="text-2xl font-black text-white sm:text-3xl">
+            All Available Vehicles
+          </h2>
+          <p className="mt-2 text-sm text-gray-500 sm:text-base">
+            Compare all matching vehicles in one place.
+          </p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -1854,6 +1964,85 @@ function FeaturedInventoryCarousel({ vehicles, onView, onInterest }) {
   );
 }
 
+function InventoryCarouselSection({
+  title,
+  text,
+  vehicles,
+  onView,
+  onInterest,
+}) {
+  const scrollRef = useRef(null);
+
+  const scrollCarousel = (direction) => {
+    if (!scrollRef.current) return;
+
+    const scrollAmount = scrollRef.current.clientWidth * 0.9;
+
+    scrollRef.current.scrollBy({
+      left: direction === "next" ? scrollAmount : -scrollAmount,
+      behavior: "smooth",
+    });
+  };
+
+  if (!vehicles.length) return null;
+
+  return (
+    <section className="mb-10">
+      <div className="mb-4 flex items-end justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-black text-white sm:text-3xl">
+            {title}
+          </h2>
+
+          {text && (
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500 sm:text-base">
+              {text}
+            </p>
+          )}
+        </div>
+
+        <div className="hidden shrink-0 items-center gap-2 sm:flex">
+          <button
+            type="button"
+            onClick={() => scrollCarousel("previous")}
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 text-white transition hover:bg-white hover:text-black"
+            aria-label={`Previous ${title}`}
+          >
+            <ChevronLeft size={20} />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => scrollCarousel("next")}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-black transition hover:bg-yellow-300"
+            aria-label={`Next ${title}`}
+          >
+            <ChevronRight size={20} />
+          </button>
+        </div>
+      </div>
+
+      <div
+        ref={scrollRef}
+        className="-mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth px-4 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+      >
+        {vehicles.map((vehicle) => (
+          <div
+            key={`${title}-${vehicle.id}`}
+            className="w-[88%] shrink-0 snap-start sm:w-[48%] xl:w-[31.5%]"
+          >
+            <VehicleCard
+              vehicle={vehicle}
+              onView={() => onView(vehicle)}
+              onInterest={() => onInterest(vehicle)}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function VehicleCard({ vehicle, onView, onInterest }) {
   const vehicleStatus = vehicle.status || "Available";
   const isSold = vehicleStatus === "Sold";
@@ -1900,41 +2089,6 @@ function VehicleCard({ vehicle, onView, onInterest }) {
             processing fees.
           </p>
         </div>
-
-        <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-          <CompactSpec
-            icon={Gauge}
-            label="Mileage"
-            value={`${formatMileage(vehicle.mileage)} mi`}
-          />
-
-          <CompactSpec
-            icon={Globe2}
-            label="Destination"
-            value={vehicle.destination}
-          />
-
-          <CompactSpec icon={Car} label="Color" value={vehicle.exterior} />
-
-          <CompactSpec
-            icon={Settings}
-            label="Trans."
-            value={vehicle.transmission}
-          />
-        </div>
-
-        {vehicleFeatures.length > 0 && (
-          <div className="mt-4 flex flex-wrap gap-2">
-            {vehicleFeatures.slice(0, 3).map((feature) => (
-              <span
-                key={feature}
-                className="rounded-full border border-white/10 px-3 py-1 text-[11px] font-semibold text-gray-300"
-              >
-                {feature}
-              </span>
-            ))}
-          </div>
-        )}
 
         <div className="mt-5 grid grid-cols-[1fr_52px_1fr] gap-2">
           <button
