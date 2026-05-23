@@ -34,7 +34,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 const BUSINESS_EMAIL = "info@234motors.com";
 const BUSINESS_PHONE_DISPLAY = "469-967-0440";
-const BUSINESS_WHATSAPP_NUMBER = "16996770440";
+const BUSINESS_WHATSAPP_NUMBER = "14699670440";
 const PRICE_DISCLAIMER =
   "Listed prices do not include shipping, clearing, customs, duty, port charges, processing fees, or destination-related costs.";
 
