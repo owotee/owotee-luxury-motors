@@ -1327,6 +1327,7 @@ function InventoryPage({
               vehicle={vehicle}
               onView={() => onView(vehicle)}
               onInterest={() => onInterest(vehicle)}
+              compactMobile
             />
           ))}
         </div>
@@ -2058,60 +2059,117 @@ function InventoryCarouselSection({
   );
 }
 
-function VehicleCard({ vehicle, onView, onInterest }) {
-  const vehicleStatus = vehicle.status || "Available";
-  const isSold = vehicleStatus === "Sold";
-  const vehicleFeatures = Array.isArray(vehicle.features)
-    ? vehicle.features
-    : [];
+function VehicleCard({ vehicle, onView, onInterest, compactMobile = false }) {
+  const [imageError, setImageError] = useState(false);
+
+  const isSold = vehicle.status?.toLowerCase() === "sold";
+  const vehicleTitle = [vehicle.year, vehicle.make, vehicle.model]
+    .filter(Boolean)
+    .join(" ");
+
+  const cardClass = compactMobile
+    ? "overflow-hidden rounded-[1.5rem] border border-yellow-400/40 bg-black shadow-2xl shadow-yellow-400/5 sm:rounded-[2rem]"
+    : "overflow-hidden rounded-[2rem] border border-yellow-400/40 bg-black shadow-2xl shadow-yellow-400/5";
+
+  const imageClass = compactMobile
+    ? "h-32 w-full object-cover sm:h-64"
+    : "h-64 w-full object-cover";
+
+  const contentClass = compactMobile ? "p-3 sm:p-5" : "p-5";
+
+  const badgeClass = compactMobile
+    ? "rounded-full bg-yellow-400 px-2.5 py-1 text-[10px] font-black text-black sm:px-3 sm:text-xs"
+    : "rounded-full bg-yellow-400 px-3 py-1.5 text-xs font-black text-black";
+
+  const statusClass = isSold
+    ? compactMobile
+      ? "rounded-full bg-red-500 px-2.5 py-1 text-[10px] font-black text-white sm:px-3 sm:text-xs"
+      : "rounded-full bg-red-500 px-3 py-1.5 text-xs font-black text-white"
+    : compactMobile
+      ? "rounded-full bg-green-500 px-2.5 py-1 text-[10px] font-black text-black sm:px-3 sm:text-xs"
+      : "rounded-full bg-green-500 px-3 py-1.5 text-xs font-black text-black";
 
   return (
-    <article className="overflow-hidden rounded-[1.5rem] border border-white/10 bg-black shadow-xl transition hover:-translate-y-1 hover:border-yellow-400/50">
+    <article className={cardClass}>
       <div className="relative">
-        <VehicleImageSlider vehicle={vehicle} className="h-48 sm:h-52" />
-
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2">
-          <span className="rounded-full bg-yellow-400 px-3 py-1.5 text-[11px] font-black text-black">
-            {vehicle.badge || "Luxury"}
-          </span>
-
-          <span
-            className={`rounded-full px-3 py-1.5 text-[11px] font-black ${getStatusClass(
-              vehicleStatus,
-            )}`}
+        {!imageError && vehicle.image ? (
+          <img
+            src={vehicle.image}
+            alt={vehicleTitle || "Vehicle"}
+            className={imageClass}
+            loading="lazy"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div
+            className={`${imageClass} flex items-center justify-center bg-zinc-900 text-gray-600`}
           >
-            {vehicleStatus}
-          </span>
+            <Car size={compactMobile ? 28 : 42} />
+          </div>
+        )}
+
+        <div className="absolute left-3 top-3 flex flex-wrap gap-2 sm:left-4 sm:top-4">
+          {vehicle.badge && <span className={badgeClass}>{vehicle.badge}</span>}
+
+          <span className={statusClass}>{vehicle.status || "Available"}</span>
         </div>
       </div>
 
-      <div className="p-5">
-        <p className="text-xs font-bold uppercase tracking-[0.25em] text-gray-500">
-          {vehicle.body}
+      <div className={contentClass}>
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 sm:text-xs">
+          {vehicle.body || "Luxury Vehicle"}
         </p>
 
-        <h3 className="mt-2 line-clamp-2 min-h-[3.5rem] text-xl font-black leading-tight">
-          {vehicle.year} {vehicle.make} {vehicle.model}
+        <h3
+          className={
+            compactMobile
+              ? "mt-2 min-h-[40px] text-sm font-black leading-tight text-white sm:min-h-0 sm:text-2xl"
+              : "mt-2 text-2xl font-black leading-tight text-white"
+          }
+        >
+          {vehicleTitle || "Luxury Vehicle"}
         </h3>
 
-        <div className="mt-3">
-          <p className="text-2xl font-black text-yellow-400">
+        {vehicle.location && (
+          <p className="mt-1 text-[11px] font-semibold text-gray-500 sm:text-sm">
+            {vehicle.location}
+          </p>
+        )}
+
+        <div className={compactMobile ? "mt-4" : "mt-5"}>
+          <p
+            className={
+              compactMobile
+                ? "text-xl font-black text-yellow-400 sm:text-3xl"
+                : "text-3xl font-black text-yellow-400"
+            }
+          >
             {formatPrice(vehicle.price)}
           </p>
 
-          <p className="mt-1 text-xs font-semibold leading-5 text-gray-500">
-            Price excludes shipping, clearing, customs, duty, port charges, and
-            processing fees.
+          <p className="mt-1 text-[10px] font-semibold leading-4 text-gray-500 sm:text-xs sm:leading-5">
+            <span className="sm:hidden">Price excludes export fees.</span>
+            <span className="hidden sm:inline">
+              Price excludes shipping, clearing, customs, duty, port charges,
+              and processing fees.
+            </span>
           </p>
         </div>
 
-        <div className="mt-5 grid grid-cols-[1fr_52px_1fr] gap-2">
+        <div
+          className={
+            compactMobile
+              ? "mt-4 grid grid-cols-[1fr_42px_1fr] gap-2 sm:grid-cols-[1fr_52px_1fr]"
+              : "mt-5 grid grid-cols-[1fr_52px_1fr] gap-2"
+          }
+        >
           <button
             type="button"
             onClick={onView}
-            className="rounded-full border border-white/20 px-3 py-3 text-xs font-black text-white transition hover:bg-white hover:text-black sm:text-sm"
+            className="rounded-full border border-white/20 px-2 py-2.5 text-[10px] font-black text-white transition hover:bg-white hover:text-black sm:px-3 sm:py-3 sm:text-sm"
           >
-            View Details
+            <span className="sm:hidden">Details</span>
+            <span className="hidden sm:inline">View Details</span>
           </button>
 
           <a
@@ -2121,16 +2179,23 @@ function VehicleCard({ vehicle, onView, onInterest }) {
             aria-label="Message on WhatsApp"
             className="flex h-full items-center justify-center rounded-full bg-green-500 text-black transition hover:bg-green-400"
           >
-            <WhatsAppIcon size={21} />
+            <WhatsAppIcon size={compactMobile ? 18 : 21} />
           </a>
 
           <button
             type="button"
             onClick={onInterest}
             disabled={isSold}
-            className="rounded-full bg-yellow-400 px-3 py-3 text-xs font-black text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-300 sm:text-sm"
+            className="rounded-full bg-yellow-400 px-2 py-2.5 text-[10px] font-black text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:bg-gray-600 disabled:text-gray-300 sm:px-3 sm:py-3 sm:text-sm"
           >
-            {isSold ? "Sold" : "Interested"}
+            {isSold ? (
+              "Sold"
+            ) : (
+              <>
+                <span className="sm:hidden">Ask</span>
+                <span className="hidden sm:inline">Interested</span>
+              </>
+            )}
           </button>
         </div>
       </div>
