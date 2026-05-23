@@ -556,7 +556,7 @@ function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-black/95 backdrop-blur">
+    <header className="sticky top-0 z-[999] border-b border-white/10 bg-black/95 backdrop-blur">
       <PageContainer className="flex items-center justify-between py-2.5">
         <BrandMark />
 
@@ -678,11 +678,6 @@ function HomePage({ vehicles = [], onView, onInterest }) {
 
         <PageContainer className="relative grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
           <div>
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-yellow-400/20 bg-yellow-400/10 px-4 py-2 text-sm font-bold uppercase tracking-[0.2em] text-yellow-400">
-              <Crown size={16} />
-              234 Motors
-            </div>
-
             <h1 className="max-w-4xl text-4xl font-black leading-tight tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl">
               Luxury Vehicles from the U.S. to Africa.
             </h1>
@@ -1052,7 +1047,7 @@ function InventoryPage({
 
         <div className="mb-8 rounded-[1.5rem] border border-white/10 bg-white/[0.04] p-4 sm:rounded-[2rem] sm:p-5">
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
-            <label className="relative">
+            <label className="relative md:col-span-2 lg:col-span-1">
               <Search
                 size={18}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
@@ -1070,7 +1065,7 @@ function InventoryPage({
             <select
               value={make}
               onChange={(e) => setMake(e.target.value)}
-              className={selectClass}
+              className={`hidden md:block ${selectClass}`}
             >
               {makes.map((item) => (
                 <option key={item}>{item}</option>
@@ -1080,7 +1075,7 @@ function InventoryPage({
             <select
               value={body}
               onChange={(e) => setBody(e.target.value)}
-              className={selectClass}
+              className={`hidden md:block ${selectClass}`}
             >
               {bodyTypes.map((item) => (
                 <option key={item}>{item}</option>
@@ -1090,7 +1085,7 @@ function InventoryPage({
             <select
               value={destination}
               onChange={(e) => setDestination(e.target.value)}
-              className={selectClass}
+              className={`hidden md:block ${selectClass}`}
             >
               {destinations.map((item) => (
                 <option key={item}>{item}</option>
@@ -1100,7 +1095,7 @@ function InventoryPage({
             <select
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
-              className={selectClass}
+              className={`hidden md:block ${selectClass}`}
             >
               <option value="All">Any Price</option>
               <option value="75000">Under $75,000</option>
@@ -1150,7 +1145,6 @@ function InventoryPage({
     </section>
   );
 }
-
 function RequestVehiclePage({
   requestForm,
   setRequestForm,
