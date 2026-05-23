@@ -1819,12 +1819,6 @@ function VehicleModal({ vehicle, onClose, onInterest }) {
               </div>
             </div>
 
-            <p className="mt-6 leading-7 text-gray-300">
-              This vehicle is listed for U.S. purchase and export support. Price
-              shown is base price only. Shipping, clearing, customs, duty,
-              processing, and destination fees are not included.
-            </p>
-
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <a
                 href={getVehicleWhatsAppLink(vehicle)}
