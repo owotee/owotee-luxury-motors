@@ -8,6 +8,7 @@ import {
   Route,
   Routes,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import {
   Car,
@@ -113,6 +114,16 @@ const fallbackVehicles = [
   },
 ];
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+}
+
 const formatPrice = (price) => {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -197,6 +208,7 @@ function getVehicleWhatsAppLink(vehicle) {
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/admin/*" element={<AdminDashboard />} />
         <Route
@@ -2062,6 +2074,12 @@ function InventoryCarouselSection({
 function VehicleCard({ vehicle, onView, onInterest, compactMobile = false }) {
   const [imageError, setImageError] = useState(false);
 
+  const imageSrc = vehicle.image || vehicle.image_url || vehicle.imageUrl || "";
+
+  useEffect(() => {
+    setImageError(false);
+  }, [vehicle.id, imageSrc]);
+
   const isSold = vehicle.status?.toLowerCase() === "sold";
   const vehicleTitle = [vehicle.year, vehicle.make, vehicle.model]
     .filter(Boolean)
@@ -2092,9 +2110,9 @@ function VehicleCard({ vehicle, onView, onInterest, compactMobile = false }) {
   return (
     <article className={cardClass}>
       <div className="relative">
-        {!imageError && vehicle.image ? (
+        {!imageError && imageSrc ? (
           <img
-            src={vehicle.image}
+            src={imageSrc}
             alt={vehicleTitle || "Vehicle"}
             className={imageClass}
             loading="lazy"
