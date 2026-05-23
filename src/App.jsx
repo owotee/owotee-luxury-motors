@@ -1336,6 +1336,20 @@ function VehicleImageSlider({ vehicle, className }) {
   );
 }
 
+function WhatsAppIcon({ size = 18 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 32 32"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M16.04 3C8.86 3 3.02 8.84 3.02 16.02c0 2.3.6 4.54 1.75 6.52L3 29l6.62-1.73a12.94 12.94 0 0 0 6.42 1.68h.01c7.18 0 13.02-5.84 13.02-13.02C29.07 8.84 23.23 3 16.04 3Zm0 23.7h-.01c-1.94 0-3.84-.52-5.5-1.5l-.4-.24-3.93 1.03 1.05-3.83-.26-.4a10.7 10.7 0 0 1-1.64-5.73c0-5.9 4.8-10.7 10.7-10.7 2.85 0 5.54 1.12 7.56 3.14a10.63 10.63 0 0 1 3.13 7.56c0 5.9-4.8 10.68-10.7 10.68Zm5.87-8.02c-.32-.16-1.9-.94-2.2-1.04-.3-.11-.51-.16-.73.16-.21.32-.84 1.04-1.03 1.25-.19.22-.38.24-.7.08-.32-.16-1.36-.5-2.6-1.6-.96-.86-1.6-1.92-1.8-2.24-.18-.32-.02-.49.14-.65.14-.14.32-.38.48-.57.16-.19.21-.32.32-.54.11-.21.05-.4-.03-.56-.08-.16-.73-1.76-1-2.4-.26-.63-.53-.54-.73-.55h-.62c-.21 0-.56.08-.86.4-.3.32-1.13 1.1-1.13 2.68s1.16 3.12 1.32 3.33c.16.21 2.28 3.48 5.52 4.88.77.33 1.37.53 1.84.68.77.25 1.48.21 2.04.13.62-.09 1.9-.78 2.17-1.53.27-.75.27-1.4.19-1.53-.08-.13-.3-.21-.62-.37Z" />
+    </svg>
+  );
+}
+
 function VehicleCard({ vehicle, onView, onInterest }) {
   const vehicleStatus = vehicle.status || "Available";
   const isSold = vehicleStatus === "Sold";
@@ -1425,8 +1439,9 @@ function VehicleCard({ vehicle, onView, onInterest }) {
               href={getVehicleWhatsAppLink(vehicle)}
               target="_blank"
               rel="noreferrer"
-              className="rounded-full bg-green-500 px-5 py-3 text-center text-sm font-bold text-black hover:bg-green-400"
+              className="flex items-center justify-center gap-2 rounded-full bg-green-500 px-5 py-3 text-center text-sm font-bold text-black hover:bg-green-400"
             >
+              <WhatsAppIcon size={18} />
               WhatsApp
             </a>
           </div>
@@ -1573,8 +1588,9 @@ function VehicleModal({ vehicle, onClose, onInterest }) {
                 href={getVehicleWhatsAppLink(vehicle)}
                 target="_blank"
                 rel="noreferrer"
-                className="rounded-full bg-green-500 px-8 py-4 text-center font-bold text-black hover:bg-green-400"
+                className="flex items-center justify-center gap-2 rounded-full bg-green-500 px-8 py-4 text-center font-bold text-black hover:bg-green-400"
               >
+                <WhatsAppIcon size={20} />
                 WhatsApp
               </a>
 

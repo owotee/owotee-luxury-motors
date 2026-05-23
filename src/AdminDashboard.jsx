@@ -168,8 +168,8 @@ const badges = [
   "Premium Pick",
   "Hot Deal",
   "Export Ready",
-  "Low Mileage",
-  "Luxury Selection",
+  "Executive",
+  "Electric",
 ];
 
 const years = Array.from({ length: 18 }, (_, index) =>
