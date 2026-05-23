@@ -198,6 +198,46 @@ async function initializeDatabase() {
   `);
 
   await pool.query(`
+    ALTER TABLE interest_messages
+    ADD COLUMN IF NOT EXISTS vehicle_id INTEGER
+  `);
+
+  await pool.query(`
+    ALTER TABLE interest_messages
+    ADD COLUMN IF NOT EXISTS vehicle_title TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE interest_messages
+    ADD COLUMN IF NOT EXISTS name TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE interest_messages
+    ADD COLUMN IF NOT EXISTS email TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE interest_messages
+    ADD COLUMN IF NOT EXISTS phone TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE interest_messages
+    ADD COLUMN IF NOT EXISTS destination TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE interest_messages
+    ADD COLUMN IF NOT EXISTS message TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE interest_messages
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW()
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS vehicle_requests (
       id SERIAL PRIMARY KEY,
       name TEXT DEFAULT '',
