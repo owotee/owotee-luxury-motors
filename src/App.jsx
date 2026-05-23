@@ -161,23 +161,29 @@ function resolveImageUrl(imageUrl) {
 }
 
 function getVehicleImages(vehicle) {
-  if (Array.isArray(vehicle.images) && vehicle.images.length > 0) {
-    return vehicle.images.map(resolveImageUrl);
-  }
+  const possibleImageValues = [
+    vehicle.images,
+    vehicle.image,
+    vehicle.image_url,
+    vehicle.imageUrl,
+  ];
 
-  const imageText = vehicle.image || "";
+  const images = possibleImageValues
+    .flatMap((value) => {
+      if (!value) return [];
 
-  const images = imageText
-    .split(",")
+      if (Array.isArray(value)) {
+        return value;
+      }
+
+      return String(value).split(",");
+    })
     .map((image) => image.trim())
     .filter(Boolean)
-    .map(resolveImageUrl);
+    .map(resolveImageUrl)
+    .filter((image, index, array) => image && array.indexOf(image) === index);
 
-  return images.length > 0
-    ? images
-    : [
-        "https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=1200&q=80",
-      ];
+  return images;
 }
 
 function getStatusClass(status) {
@@ -1775,11 +1781,19 @@ function VehicleImagePlaceholder({ vehicle }) {
 
 function VehicleImageSlider({ vehicle, className }) {
   const images = getVehicleImages(vehicle);
+  const imageSignature = images.join("|");
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [touchStart, setTouchStart] = useState(null);
   const [failedImages, setFailedImages] = useState([]);
 
+  useEffect(() => {
+    setCurrentIndex(0);
+    setFailedImages([]);
+  }, [vehicle.id, imageSignature]);
+
   const workingImages = images.filter((image) => !failedImages.includes(image));
+
   const safeIndex =
     workingImages.length > 0
       ? Math.min(currentIndex, workingImages.length - 1)
@@ -1811,7 +1825,32 @@ function VehicleImageSlider({ vehicle, className }) {
     );
   };
 
+  const handlePreviousClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    goPrevious();
+  };
+
+  const handleNextClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    goNext();
+  };
+
+  const handleDotClick = (e, index) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCurrentIndex(index);
+  };
+
+  const handleTouchStart = (e) => {
+    e.stopPropagation();
+    setTouchStart(e.touches[0].clientX);
+  };
+
   const handleTouchEnd = (e) => {
+    e.stopPropagation();
+
     if (touchStart === null || workingImages.length <= 1) return;
 
     const touchEnd = e.changedTouches[0].clientX;
@@ -1830,8 +1869,8 @@ function VehicleImageSlider({ vehicle, className }) {
 
   return (
     <div
-      className={`relative overflow-hidden bg-black ${className}`}
-      onTouchStart={(e) => setTouchStart(e.touches[0].clientX)}
+      className={`relative overflow-hidden bg-black touch-pan-y ${className}`}
+      onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
       {currentImage ? (
@@ -1841,6 +1880,7 @@ function VehicleImageSlider({ vehicle, className }) {
           className="h-full w-full object-cover"
           onError={() => markImageAsFailed(currentImage)}
           loading="lazy"
+          draggable={false}
         />
       ) : (
         <VehicleImagePlaceholder vehicle={vehicle} />
@@ -1850,8 +1890,8 @@ function VehicleImageSlider({ vehicle, className }) {
         <>
           <button
             type="button"
-            onClick={goPrevious}
-            className="absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur hover:bg-black"
+            onClick={handlePreviousClick}
+            className="absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur transition hover:bg-yellow-400 hover:text-black"
             aria-label="Previous image"
           >
             <ChevronLeft size={20} />
@@ -1859,19 +1899,19 @@ function VehicleImageSlider({ vehicle, className }) {
 
           <button
             type="button"
-            onClick={goNext}
-            className="absolute right-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur hover:bg-black"
+            onClick={handleNextClick}
+            className="absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-black/70 text-white backdrop-blur transition hover:bg-yellow-400 hover:text-black"
             aria-label="Next image"
           >
             <ChevronRight size={20} />
           </button>
 
-          <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
+          <div className="absolute bottom-3 left-0 right-0 z-20 flex justify-center gap-2">
             {workingImages.map((image, index) => (
               <button
                 key={`${image}-${index}`}
                 type="button"
-                onClick={() => setCurrentIndex(index)}
+                onClick={(e) => handleDotClick(e, index)}
                 className={`h-2 rounded-full transition ${
                   index === safeIndex ? "w-6 bg-yellow-400" : "w-2 bg-white/60"
                 }`}
@@ -2071,16 +2111,28 @@ function InventoryCarouselSection({
   );
 }
 
+function getVehicleImageUrls(imageValue) {
+  if (!imageValue) return [];
+
+  if (Array.isArray(imageValue)) {
+    return imageValue
+      .map((url) => String(url).trim())
+      .filter((url) => url.startsWith("http"));
+  }
+
+  return String(imageValue)
+    .split(",")
+    .map((url) => url.trim())
+    .filter((url) => url.startsWith("http"));
+}
+
+function getPrimaryImageUrl(imageValue) {
+  return getVehicleImageUrls(imageValue)[0] || "";
+}
+
 function VehicleCard({ vehicle, onView, onInterest, compactMobile = false }) {
-  const [imageError, setImageError] = useState(false);
-
-  const imageSrc = vehicle.image || vehicle.image_url || vehicle.imageUrl || "";
-
-  useEffect(() => {
-    setImageError(false);
-  }, [vehicle.id, imageSrc]);
-
   const isSold = vehicle.status?.toLowerCase() === "sold";
+
   const vehicleTitle = [vehicle.year, vehicle.make, vehicle.model]
     .filter(Boolean)
     .join(" ");
@@ -2089,9 +2141,7 @@ function VehicleCard({ vehicle, onView, onInterest, compactMobile = false }) {
     ? "overflow-hidden rounded-[1.5rem] border border-yellow-400/40 bg-black shadow-2xl shadow-yellow-400/5 sm:rounded-[2rem]"
     : "overflow-hidden rounded-[2rem] border border-yellow-400/40 bg-black shadow-2xl shadow-yellow-400/5";
 
-  const imageClass = compactMobile
-    ? "h-32 w-full object-cover sm:h-64"
-    : "h-64 w-full object-cover";
+  const imageClass = compactMobile ? "h-32 w-full sm:h-64" : "h-64 w-full";
 
   const contentClass = compactMobile ? "p-3 sm:p-5" : "p-5";
 
@@ -2110,23 +2160,9 @@ function VehicleCard({ vehicle, onView, onInterest, compactMobile = false }) {
   return (
     <article className={cardClass}>
       <div className="relative">
-        {!imageError && imageSrc ? (
-          <img
-            src={imageSrc}
-            alt={vehicleTitle || "Vehicle"}
-            className={imageClass}
-            loading="lazy"
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <div
-            className={`${imageClass} flex items-center justify-center bg-zinc-900 text-gray-600`}
-          >
-            <Car size={compactMobile ? 28 : 42} />
-          </div>
-        )}
+        <VehicleImageSlider vehicle={vehicle} className={imageClass} />
 
-        <div className="absolute left-3 top-3 flex flex-wrap gap-2 sm:left-4 sm:top-4">
+        <div className="absolute left-3 top-3 z-10 flex flex-wrap gap-2 sm:left-4 sm:top-4">
           {vehicle.badge && <span className={badgeClass}>{vehicle.badge}</span>}
 
           <span className={statusClass}>{vehicle.status || "Available"}</span>
