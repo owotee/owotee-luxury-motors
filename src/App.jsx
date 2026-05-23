@@ -414,7 +414,7 @@ function Website() {
   );
 
   return (
-    <main className="min-h-screen bg-black text-white">
+    <main className="min-h-screen bg-black pt-[69px] text-white">
       <Navbar />
 
       <Routes>
@@ -556,7 +556,7 @@ function Navbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-[999] border-b border-white/10 bg-black/95 backdrop-blur">
+    <header className="fixed left-0 right-0 top-0 z-[999] border-b border-white/10 bg-black/95 backdrop-blur">
       <PageContainer className="flex items-center justify-between py-2.5">
         <BrandMark />
 
@@ -599,7 +599,7 @@ function Navbar() {
       </PageContainer>
 
       {mobileMenuOpen && (
-        <div className="border-t border-white/10 bg-black lg:hidden">
+        <div className="fixed inset-x-0 top-[69px] z-[998] max-h-[calc(100vh-69px)] overflow-y-auto border-t border-white/10 bg-black/95 backdrop-blur lg:hidden">
           <PageContainer className="py-4">
             <div className="grid gap-3">
               {navLinks.map((link) => {
