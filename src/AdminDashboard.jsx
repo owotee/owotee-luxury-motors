@@ -1771,25 +1771,25 @@ function LeadInfo({ icon: Icon, label, value }) {
 
 function InputField({
   label,
-  icon: Icon,
   name,
   type = "text",
   value,
   onChange,
+  icon: Icon,
   placeholder,
-  required,
+  required = false,
 }) {
   return (
-    <label className="block">
-      <span className="mb-2 block text-sm font-black text-black/70">
+    <label className="grid gap-2">
+      <span className="text-sm font-black uppercase tracking-[0.18em] text-gray-300">
         {label}
       </span>
 
       <div className="relative">
         {Icon && (
           <Icon
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-black/35"
-            size={18}
+            size={20}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
           />
         )}
 
@@ -1800,9 +1800,7 @@ function InputField({
           onChange={onChange}
           placeholder={placeholder}
           required={required}
-          className={`w-full rounded-2xl border border-black/10 bg-[#f7f3ed] px-4 py-4 font-semibold outline-none transition focus:border-black ${
-            Icon ? "pl-11" : ""
-          }`}
+          className="w-full rounded-2xl border border-white/15 bg-black/80 px-12 py-4 text-base font-bold text-white caret-yellow-400 outline-none placeholder:text-gray-500 focus:border-yellow-400 focus:ring-4 focus:ring-yellow-400/10"
         />
       </div>
     </label>
