@@ -1779,7 +1779,7 @@ function VehicleImagePlaceholder({ vehicle }) {
   );
 }
 
-function VehicleImageSlider({ vehicle, className }) {
+function VehicleImageSlider({ vehicle, className, imageFit = "cover" }) {
   const images = getVehicleImages(vehicle);
   const imageSignature = images.join("|");
 
@@ -1877,7 +1877,9 @@ function VehicleImageSlider({ vehicle, className }) {
         <img
           src={currentImage}
           alt={`${vehicle.year} ${vehicle.make} ${vehicle.model}`}
-          className="h-full w-full object-cover"
+          className={`h-full w-full ${
+            imageFit === "contain" ? "object-contain" : "object-cover"
+          }`}
           onError={() => markImageAsFailed(currentImage)}
           loading="lazy"
           draggable={false}
@@ -2213,8 +2215,8 @@ function VehicleCard({ vehicle, onView, onInterest, compactMobile = false }) {
         <div
           className={
             compactMobile
-              ? "mt-4 grid grid-cols-[1fr_42px_1fr] gap-2 sm:grid-cols-[1fr_52px_1fr]"
-              : "mt-5 grid grid-cols-[1fr_52px_1fr] gap-2"
+              ? "mt-4 grid grid-cols-2 gap-2"
+              : "mt-5 grid grid-cols-2 gap-3"
           }
         >
           <button
@@ -2225,16 +2227,6 @@ function VehicleCard({ vehicle, onView, onInterest, compactMobile = false }) {
             <span className="sm:hidden">Details</span>
             <span className="hidden sm:inline">View Details</span>
           </button>
-
-          <a
-            href={getVehicleWhatsAppLink(vehicle)}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Message on WhatsApp"
-            className="flex h-full items-center justify-center rounded-full bg-green-500 text-black transition hover:bg-green-400"
-          >
-            <WhatsAppIcon size={compactMobile ? 18 : 21} />
-          </a>
 
           <button
             type="button"
@@ -2297,7 +2289,8 @@ function VehicleModal({ vehicle, onClose, onInterest }) {
         <div className="grid lg:grid-cols-2">
           <VehicleImageSlider
             vehicle={vehicle}
-            className="h-64 sm:h-80 lg:h-full lg:min-h-[420px]"
+            className="h-72 bg-black sm:h-[420px] lg:h-full lg:min-h-[560px]"
+            imageFit="contain"
           />
 
           <div className="p-6 md:p-8">
