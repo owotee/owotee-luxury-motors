@@ -388,11 +388,15 @@ function AdminDashboard() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("owoteeAdminToken");
+    const confirmed = window.confirm(
+      "Are you sure you want to log out of the admin dashboard?",
+    );
+
+    if (!confirmed) return;
+
+    localStorage.removeItem("adminToken");
     setToken("");
-    setVehicles([]);
-    setMessages([]);
-    setRequests([]);
+    setAdmin(null);
   };
 
   const openCreateEditor = () => {
@@ -685,7 +689,7 @@ function AdminDashboard() {
     <section className="min-h-screen overflow-x-hidden bg-[#f5f1ea] text-[#161616]">
       <div className="flex min-h-screen">
         <aside
-          className={`fixed inset-y-0 left-0 z-40 w-80 transform border-r border-black/10 bg-[#0b0b0b] text-white transition duration-300 lg:static lg:translate-x-0 ${
+          className={`fixed inset-y-0 left-0 z-[1000] w-80 transform border-r border-black/10 bg-[#0b0b0b] text-white transition duration-300 lg:static lg:translate-x-0 ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
@@ -758,15 +762,15 @@ function AdminDashboard() {
         </aside>
 
         {sidebarOpen && (
-          <button
-            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+          <div
+            className="fixed inset-0 z-[999] bg-black/50 lg:hidden"
             onClick={() => setSidebarOpen(false)}
             aria-label="Close sidebar"
           />
         )}
 
-        <main className="min-w-0 flex-1 overflow-x-hidden">
-          <header className="sticky top-0 z-20 border-b border-black/10 bg-[#f5f1ea]/90 px-4 py-4 backdrop-blur-xl sm:px-6 lg:px-8">
+        <main className="min-h-screen flex-1 overflow-y-auto">
+          <header className="sticky top-0 z-40 border-b border-black/10 bg-[#f5f2ea] px-5 py-5 sm:px-8 lg:px-10">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <button
@@ -806,7 +810,7 @@ function AdminDashboard() {
             </div>
           </header>
 
-          <div className="w-full max-w-full overflow-x-hidden px-3 py-5 sm:px-6 lg:px-8">
+          <div className="w-full max-w-full overflow-x-hidden px-5 py-6 sm:px-8 lg:px-10">
             {error && <Alert type="error" message={error} />}
             {notice && <Alert type="success" message={notice} />}
 
